@@ -7,6 +7,7 @@
 		"@material-ui/icons": "^4.9.1",
 		"@material-ui/lab": "^4.0.0-alpha.56",
 		"axios": "^0.21.0",
+		"faunadb": "^4.0.0",
 		"fuse.js": "^6.4.3",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
@@ -29,9 +30,19 @@
 		"workbox-streams": "^5.1.4"
 	},
 	"scripts": {
-		"start": "react-scripts start",
+		"👇 ABOUT-bootstrap-command": "💡 scaffold and setup FaunaDB #",
+		"bootstrap": "node ./scripts/bootstrap-fauna-database.js",
+		"👇 ABOUT-start-command": "💡 start the app and server #",
+		"start": "npm-run-all --parallel start:app start:server",
+		"start:app": "react-scripts start",
+		"start:server": "netlify-lambda serve functions -c ./webpack.config.js",
+		"👇 ABOUT-prebuild-command": "💡 before 'build' runs, run the 'bootstrap' command #",
+		"prebuild": "echo 'setup faunaDB' && npm run bootstrap",
+		"👇 ABOUT-build-command": "💡 build the react app and the serverless functions #",
+		"build": "npm-run-all --parallel build:**",
+		"build:app": "GENERATE_SOURCEMAP=false react-scripts build",
+		"build:functions": "netlify-lambda build functions -c ./webpack.config.js",
 		"test": "react-scripts build && serve -l 3000 -s build",
-		"build": "GENERATE_SOURCEMAP=false react-scripts build",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
@@ -58,7 +69,17 @@
 		"@types/react-dom": "^16.9.9",
 		"@types/react-helmet": "^6.1.0",
 		"@types/react-router-dom": "^5.1.6",
+		"netlify-lambda": "^2.0.1",
+		"npm-run-all": "^4.1.5",
 		"react-query-devtools": "^2.6.2",
 		"typescript": "^4.0.5"
+	},
+	"proxy": {
+		"/.netlify/functions": {
+			"target": "http://localhost:9000",
+			"pathRewrite": {
+				"^/\\.netlify/functions": ""
+			}
+		}
 	}
 }
