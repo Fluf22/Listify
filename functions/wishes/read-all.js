@@ -8,7 +8,7 @@ const client = new Client({
 })
 
 const handler = async (event, context) => {
-	console.log('Function `read-all` invoked: ', context.clientContext)
+	console.log("Function `read-all` invoked");
 	return client
 		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes'))))
 		.then((response) => {

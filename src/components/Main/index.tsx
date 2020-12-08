@@ -6,6 +6,7 @@ import { useGetAllWishes } from '../../queries';
 
 const Main = () => {
 	const classes = useStyles();
+	// eslint-disable-next-line
 	const wishes = useGetAllWishes();
 
 	return (
