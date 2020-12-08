@@ -1,5 +1,5 @@
 {
-	"name": "listify",
+	"name": "caudex",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
@@ -7,7 +7,9 @@
 		"@material-ui/icons": "^4.9.1",
 		"@material-ui/lab": "^4.0.0-alpha.56",
 		"axios": "^0.21.0",
+		"faunadb": "^4.0.0",
 		"fuse.js": "^6.4.3",
+		"netlify-identity-widget": "^1.9.1",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-helmet": "^6.1.0",
@@ -30,8 +32,8 @@
 	},
 	"scripts": {
 		"start": "react-scripts start",
-		"test": "react-scripts build && serve -l 3000 -s build",
 		"build": "GENERATE_SOURCEMAP=false react-scripts build",
+		"test": "react-scripts build && serve -l 3000 -s build",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
@@ -53,11 +55,13 @@
 		]
 	},
 	"devDependencies": {
+		"@types/netlify-identity-widget": "^1.9.1",
 		"@types/node": "^12.19.3",
 		"@types/react": "^16.9.55",
 		"@types/react-dom": "^16.9.9",
 		"@types/react-helmet": "^6.1.0",
 		"@types/react-router-dom": "^5.1.6",
+		"npm-run-all": "^4.1.5",
 		"react-query-devtools": "^2.6.2",
 		"typescript": "^4.0.5"
 	}
