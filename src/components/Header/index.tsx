@@ -37,6 +37,7 @@ const Header = (props: HeaderProps) => {
 	const history = useHistory();
 	const { page } = props;
 	const [showInstallButton, setShowInstallButton] = useState<boolean>(false);
+	//eslint-disable-next-line
 	const [selectedPage, setPage] = useState<PageType | undefined>(page ? pages.find(p => p.id === page) : undefined);
 
 	useEventListener("beforeinstallprompt", (event: any) => {
