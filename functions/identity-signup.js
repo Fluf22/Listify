@@ -1,5 +1,6 @@
 const handler = async (event, context) => {
-	const reqBody = JSON.stringify(event.body);
+	const reqBody = JSON.parse(event.body);
+	console.log("Req body: ", reqBody);
 	if (reqBody.event === "signup") {
 		return {
 			statusCode: 200,
