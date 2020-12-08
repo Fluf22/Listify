@@ -7,7 +7,7 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 import netlifyIdentity from 'netlify-identity-widget';
 import Home from './components/Home';
 import './styles.css';
-import ProvideAuth from './components/provide-auth';
+import ProvideAuth from './components/Auth/provide-auth';
 // import reportWebVitals from './reportWebVitals';
 
 global.installAppEvent = undefined;
