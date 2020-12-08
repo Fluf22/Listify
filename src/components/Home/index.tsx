@@ -2,14 +2,14 @@ import React, { Suspense } from 'react';
 import { Switch, Route, RouteComponentProps } from 'react-router-dom';
 import { CircularProgress, Grid } from '@material-ui/core';
 import Header from '../Header';
-import Main from '../Main';
 import ErrorBoundary from './error-boundary';
 import ServiceWorkerWrapper from '../ServiceWorkerWrapper';
 import useStyles from './styles';
-import PrivateRoute from '../Auth/private-route';
 
 const NotFound = React.lazy(() => import('../NotFound'));
 const Login = React.lazy(() => import('../Login'));
+const PrivateRoute = React.lazy(() => import('../Auth/private-route'));
+const Main = React.lazy(() => import('../Main'));
 
 interface HomeRouteProps {
 	slug?: string;

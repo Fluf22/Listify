@@ -2,9 +2,11 @@ import React from 'react';
 import { Grid, Typography } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 import useStyles from './styles';
+import { useGetAllWishes } from '../../queries';
 
 const Main = () => {
 	const classes = useStyles();
+	const wishes = useGetAllWishes();
 
 	return (
 		<Grid item container direction="column" className={classes.description} justify="space-around">
