@@ -8,10 +8,11 @@ export const useAuth = () => {
 };
 
 export const useProvideAuth = () => {
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<netlifyIdentity.User | null>(netlifyIdentity.currentUser());
 
 	const login = (callback: any) => {
 		netlifyIdentity.open();
+		netlifyIdentity.off('login');
 		netlifyIdentity.on('login', (user: any) => {
 			setUser(user);
 			callback(user);
@@ -20,8 +21,9 @@ export const useProvideAuth = () => {
 
 	const logout = (callback: any) => {
 		netlifyIdentity.logout();
+		netlifyIdentity.off('logout');
 		netlifyIdentity.on('logout', () => {
-			setUser(user);
+			setUser(null);
 			callback();
 		});
 	};

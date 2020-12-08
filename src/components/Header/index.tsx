@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Button, Grid, Toolbar, Typography, useMediaQuery } from '@material-ui/core';
-import AccountLogin from '../AccountLogin';
+import { AppBar, Button, Grid, Toolbar, Typography, useMediaQuery, Menu, MenuItem } from '@material-ui/core';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import { useHistory } from 'react-router-dom';
+import { useAuth } from '../../hooks/auth';
 import { useEventListener } from '../../hooks';
 import useStyles from './styles';
-import { useHistory } from 'react-router-dom';
 
 interface HeaderProps {
 	page: string | undefined;
@@ -39,6 +40,25 @@ const Header = (props: HeaderProps) => {
 	const [showInstallButton, setShowInstallButton] = useState<boolean>(false);
 	//eslint-disable-next-line
 	const [selectedPage, setPage] = useState<PageType | undefined>(page ? pages.find(p => p.id === page) : undefined);
+	const { user, logout } = useAuth();
+	const [anchorEl, setAnchorEl] = useState(null);
+
+	const handleLogout = () => {
+		handleCloseMenu();
+		logout(() => {
+			console.log("Logged out");
+			history.push("/");
+		});
+	};
+
+	const handleOpenMenu = (event: any) => {
+		setAnchorEl(event.currentTarget);
+	};
+
+	const handleCloseMenu = () => {
+		setAnchorEl(null);
+	};
+
 
 	useEventListener("beforeinstallprompt", (event: any) => {
 		event.preventDefault();
@@ -85,7 +105,29 @@ const Header = (props: HeaderProps) => {
 									</Button>
 								) : ("")
 							}
-							<AccountLogin />
+							{
+								user === null ? (
+									<Button color="secondary" onClick={() => history.push("/login")}>
+										Connexion
+										<AccountCircleIcon className={classes.installButtonIcon} />
+									</Button>
+								) : (
+										<>
+											<Button color="secondary" onClick={handleOpenMenu}>
+												{user.user_metadata?.full_name || "Inconnu"}
+												<AccountCircleIcon className={classes.installButtonIcon} />
+											</Button>
+											<Menu
+												id="logout-menu"
+												anchorEl={anchorEl}
+												open={Boolean(anchorEl)}
+												onClose={handleCloseMenu}
+											>
+												<MenuItem onClick={() => handleLogout()}>Déconnexion</MenuItem>
+											</Menu>
+										</>
+									)
+							}
 						</Grid>
 					</Grid>
 				</Toolbar>

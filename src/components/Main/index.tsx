@@ -2,9 +2,12 @@ import React from 'react';
 import { Grid, Typography } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 import useStyles from './styles';
+import { useGetAllWishes } from '../../queries';
 
 const Main = () => {
 	const classes = useStyles();
+	// eslint-disable-next-line
+	const wishes = useGetAllWishes();
 
 	return (
 		<Grid item container direction="column" className={classes.description} justify="space-around">
@@ -15,12 +18,12 @@ const Main = () => {
 			<Grid item container direction="column" justify="space-evenly" className={classes.paragraph}>
 				<Grid item>
 					<Typography variant="h4">
-						Connexion nécessaire
+						Page sécurisée
 					</Typography>
 				</Grid>
 				<Grid item className={classes.paragraphText}>
 					<Typography>
-						Vous devez vous connecter pour accéder au site
+						Vous etes connecté si vous pouvez voir cette page
 					</Typography>
 				</Grid>
 			</Grid>

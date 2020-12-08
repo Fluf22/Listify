@@ -5,20 +5,30 @@ const readAllRoute = require('./read-all')
 const updateRoute = require('./update')
 
 const handler = async (event, context) => {
-	const path = event.path.replace(/\.netlify\/functions\/[^/]+/, '')
-	const segments = path.split('/').filter(Boolean)
+	const path = event.path.replace(/\.netlify\/functions\/[^/]+/, '');
+	const segments = path.split('/').filter(Boolean);
+
+	console.log("User: ", context.clientContext)
+	const { user } = context.clientContext;
+	if (user === undefined || user.email === undefined || !user.app_metadata?.roles?.includes("user")) {
+		return {
+			statusCode: 401,
+			body: "Unauthorized"
+		};
+	}
+	const userMail = user.email;
 
 	switch (event.httpMethod) {
 		case 'GET':
 			// e.g. GET /.netlify/functions/messages
 			if (segments.length === 0) {
-				return readAllRoute.handler(event, context)
+				return readAllRoute.handler(event, context, userMail)
 			}
 			// e.g. GET /.netlify/functions/messages/123456
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return readRoute.handler(event, context)
+				return readRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,
@@ -28,13 +38,13 @@ const handler = async (event, context) => {
 
 		case 'POST':
 			// e.g. POST /.netlify/functions/messages with a body of key value pair objects, NOT strings
-			return createRoute.handler(event, context)
+			return createRoute.handler(event, context, userMail)
 		case 'PUT':
 			// e.g. PUT /.netlify/functions/messages/123456 with a body of key value pair objects, NOT strings
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return updateRoute.handler(event, context)
+				return updateRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,
@@ -46,7 +56,7 @@ const handler = async (event, context) => {
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return deleteRoute.handler(event, context)
+				return deleteRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,

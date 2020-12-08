@@ -1,20 +1,18 @@
-import { AxiosRequestConfig } from "axios";
-import charactersQuery from './characters';
-import booksQuery from './books';
-import chaptersQuery from './chapters';
-import moviesQuery from './movies';
-import quotesQuery from './quotes';
+import axios, { AxiosRequestConfig } from "axios";
+import { useQuery } from "react-query";
+import netlifyIdentity from 'netlify-identity-widget';
 
-export const axiosCfg: AxiosRequestConfig = {
+const axiosCfg: AxiosRequestConfig = {
 	method: "GET",
-	baseURL: process.env.REACT_APP_API_URL,
+	baseURL: "/.netlify/functions",
 	headers: {
-		Authorization: "Bearer " + process.env.REACT_APP_API_ACCESS_TOKEN
+		Authorization: "Bearer " + netlifyIdentity.currentUser()?.token?.access_token
 	}
 };
 
-export const useCharacters = () => charactersQuery(axiosCfg);
-export const useBooks = () => booksQuery(axiosCfg);
-export const useChapters = (bookID: string) => chaptersQuery(bookID, axiosCfg);
-export const useMovies = () => moviesQuery(axiosCfg);
-export const useQuotes = (movieID: string = "") => quotesQuery(movieID, axiosCfg);
+export const useGetAllWishes = () => {
+	return useQuery("wishes", () => axios.request({
+		url: "/wishes",
+		...axiosCfg
+	}).then((res) => res.data));
+};

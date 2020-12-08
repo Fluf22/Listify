@@ -7,8 +7,8 @@ const client = new Client({
 	secret: process.env.FAUNADB_SERVER_SECRET,
 })
 
-const handler = async () => {
-	console.log('Function `read-all` invoked')
+const handler = async (event, context) => {
+	console.log("Function `read-all` invoked");
 	return client
 		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes'))))
 		.then((response) => {
