@@ -1,4 +1,5 @@
 const handler = async (event, context) => {
+	console.log("Exec identity signup: ", {event, context, body: event.body });
 	if (event.body.event === "signup") {
 		return {
 			statusCode: 200,
