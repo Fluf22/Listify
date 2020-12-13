@@ -13,6 +13,16 @@ const useStyles = makeStyles((theme) => createStyles({
 	paragraphText: {
 		paddingLeft: theme.spacing(3),
 		marginTop: "30px"
+	},
+	fallback: {
+		height: "calc(100% - 64px)"
+	},
+	appBar: {
+		position: "relative"
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
 	}
 }));
 

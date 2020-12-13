@@ -9,7 +9,7 @@ import useStyles from './styles';
 const NotFound = React.lazy(() => import('../NotFound'));
 const Login = React.lazy(() => import('../Login'));
 const PrivateRoute = React.lazy(() => import('../Auth/private-route'));
-const Main = React.lazy(() => import('../Main'));
+const MyWishes = React.lazy(() => import('../MyWishes'));
 
 interface HomeRouteProps {
 	slug?: string;
@@ -31,7 +31,7 @@ const Home = (props: RouteComponentProps<HomeRouteProps>) => {
 						}>
 							<Switch>
 								<PrivateRoute exact path="/">
-									<Main />
+									<MyWishes />
 								</PrivateRoute>
 								<Route exact path="/login" component={Login} />
 								<Route path="*" component={NotFound} />

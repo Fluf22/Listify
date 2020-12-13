@@ -8,13 +8,14 @@ const client = new Client({
 })
 
 /* export our lambda function as named "handler" export */
-const handler = async (event) => {
+const handler = async (event, context, userMail) => {
 	/* parse the string body into a useable JS object */
 	const data = JSON.parse(event.body)
-	console.log('Function `create` invoked', data)
 	const item = {
-		data,
-	}
+		data
+	};
+	item.data.created.by = userMail;
+	console.log('Function `create` invoked', item);
 	/* construct the fauna query */
 	return client
 		.query(query.Create(query.Ref('classes/wishes'), item))
