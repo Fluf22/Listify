@@ -10,7 +10,7 @@ const handler = async (event, context) => {
 
 	console.log("User: ", context.clientContext)
 	const { user } = context.clientContext;
-	if (user === undefined || user.email === undefined || !user.app_metadata?.roles?.includes("user")) {
+	if (user === undefined || user.email === undefined || user.app_metadata === undefined || user.app_metadata.roles === undefined || !user.app_metadata.roles.includes("user")) {
 		return {
 			statusCode: 401,
 			body: "Unauthorized"
