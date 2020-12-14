@@ -20,9 +20,9 @@ const MyWishes = () => {
 	const classes = useStyles();
 	// eslint-disable-next-line
 	const { isLoading, isError, data } = useGetAllWishes();
-	const [createWish] = usePostWish();
-	const [editWish] = usePutWish();
-	const [deleteWish] = useDeleteWish();
+	const { mutate: createWish } = usePostWish();
+	const { mutate: editWish } = usePutWish();
+	const { mutate: deleteWish } = useDeleteWish();
 	const [wish, setWish] = useState<IWish | undefined>(undefined);
 	const [deleteWishWithID, setDeleteWishWithID] = useState<string | undefined>(undefined);
 
@@ -50,9 +50,11 @@ const MyWishes = () => {
 	};
 
 	const handleDeleteWish = () => {
-		console.log("Delete wish: ", data?.wishes?.find((wish: any) => wish.id === deleteWishWithID));
-		deleteWish(deleteWishWithID);
-		setDeleteWishWithID(undefined);
+		if (deleteWishWithID !== undefined) {
+			console.log("Delete wish: ", data?.wishes?.find((wish: any) => wish.id === deleteWishWithID));
+			deleteWish(deleteWishWithID);
+			setDeleteWishWithID(undefined);
+		}
 	};
 
 	const handleOpenWish = (link: string) => {

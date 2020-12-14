@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { QueryCache, ReactQueryCacheProvider } from 'react-query';
-import { ReactQueryDevtools } from 'react-query-devtools';
-import { CssBaseline, ThemeProvider, Theme, createMuiTheme } from '@material-ui/core';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from 'react-query/devtools';
+import { CssBaseline, ThemeProvider, Theme, createMuiTheme, IconButton } from '@material-ui/core';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import netlifyIdentity from 'netlify-identity-widget';
 import Home from './components/Home';
 import './styles.css';
 import ProvideAuth from './components/Auth/provide-auth';
+import { SnackbarProvider } from 'notistack';
+import CloseIcon from '@material-ui/icons/Close';
 // import reportWebVitals from './reportWebVitals';
 
 global.installAppEvent = undefined;
@@ -26,25 +28,43 @@ const theme: Theme = createMuiTheme({
 	}
 });
 
-const queryCache = new QueryCache();
+const queryClient = new QueryClient();
+
+const notistackRef = React.createRef<SnackbarProvider>();
+const onClickDismiss = (key: string | number) => () => {
+	notistackRef.current?.closeSnackbar(key);
+}
 
 ReactDOM.render(
 	<React.Fragment>
-		<ReactQueryCacheProvider queryCache={queryCache}>
+		<QueryClientProvider client={queryClient}>
 			<ThemeProvider theme={theme}>
 				<CssBaseline />
-				<ProvideAuth>
-					<Router>
-						<Route path="/:slug?" component={Home} />
-					</Router>
-				</ProvideAuth>
+				<SnackbarProvider
+					ref={notistackRef}
+					maxSnack={2}
+					preventDuplicate
+					autoHideDuration={3000}
+					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+					action={(key) => (
+						<IconButton onClick={onClickDismiss(key)} color="secondary">
+							<CloseIcon />
+						</IconButton>
+					)}
+				>
+					<ProvideAuth>
+						<Router>
+							<Route path="/:slug?" component={Home} />
+						</Router>
+					</ProvideAuth>
+				</SnackbarProvider>
 			</ThemeProvider>
 			{
 				process.env.NODE_ENV === "development" ? (
 					<ReactQueryDevtools initialIsOpen />
 				) : ("")
 			}
-		</ReactQueryCacheProvider>
+		</QueryClientProvider>
 	</React.Fragment>,
 	document.getElementById('root')
 );
