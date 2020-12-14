@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CircularProgress, Grid, Typography, Button, AppBar, Dialog, IconButton, Toolbar, Slide, DialogContent, TextField, DialogActions } from '@material-ui/core';
+import { CircularProgress, Grid, Typography, Button, AppBar, Dialog, IconButton, Toolbar, Slide, DialogContent, TextField, DialogActions, Fab, useMediaQuery } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 import useStyles from './styles';
 import { useGetAllWishes, usePostWish, usePutWish, useDeleteWish } from '../../queries';
@@ -17,8 +17,8 @@ const Transition: any = React.forwardRef((props: any, ref: any) => {
 });
 
 const MyWishes = () => {
-	const classes = useStyles();
-	// eslint-disable-next-line
+	const isMobile = useMediaQuery('(max-width:555px)');
+	const classes = useStyles(isMobile);
 	const { isLoading, isError, data } = useGetAllWishes();
 	const { mutate: createWish } = usePostWish();
 	const { mutate: editWish } = usePutWish();
@@ -124,7 +124,7 @@ const MyWishes = () => {
 							</Grid>
 						))
 					}
-					<Grid
+					{/* <Grid
 						item
 						container
 						direction="column"
@@ -141,7 +141,7 @@ const MyWishes = () => {
 						<Button variant="contained" color="secondary" onClick={() => openCreateEditWishDialog(undefined)} style={{ width: "100%", height: "100%" }}>
 							<AddIcon color="primary" />
 						</Button>
-					</Grid>
+					</Grid> */}
 					{
 						[0, 1, 2, 3, 4].map((item, key) => (
 							<Grid
@@ -163,6 +163,9 @@ const MyWishes = () => {
 					}
 				</Grid>)
 			}
+			<Fab color="secondary" aria-label="add wish" onClick={() => openCreateEditWishDialog(undefined)} className={classes.addWishFab}>
+				<AddIcon color="primary" />
+			</Fab>
 			<Dialog fullScreen open={wish !== undefined} onClose={() => setWish(undefined)} TransitionComponent={Transition}>
 				<AppBar className={classes.appBar}>
 					<Toolbar>

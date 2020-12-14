@@ -23,7 +23,12 @@ const useStyles = makeStyles((theme) => createStyles({
 	title: {
 		marginLeft: theme.spacing(2),
 		flex: 1,
-	}
+	},
+	addWishFab: isMobile => ({
+		position: "fixed",
+		right: "20px",
+		bottom: isMobile ? "76px" : "20px"
+	})
 }));
 
 export default useStyles;
