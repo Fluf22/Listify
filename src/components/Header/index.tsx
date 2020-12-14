@@ -99,14 +99,37 @@ const Header = (props: HeaderProps) => {
 						<Grid item container justify="flex-end" xs className={classes.installButtonContainer}>
 							{
 								showInstallButton ? (
-									<Button color="primary" onClick={() => handleInstall()} variant="outlined" className={classes.installButton}>
-										Install
+									<Button color="secondary" onClick={() => handleInstall()} variant="outlined" className={classes.installButton}>
+										{isMobile ? "" : "Install"}
 										<CloudDownloadIcon className={classes.installButtonIcon} />
 									</Button>
 								) : ("")
 							}
 							{
-								user === null ? (
+								isMobile ? (
+									<>
+										<Button color="secondary" onClick={handleOpenMenu}>
+											<AccountCircleIcon className={classes.installButtonIcon} />
+										</Button>
+										<Menu
+											id="logout-menu"
+											anchorEl={anchorEl}
+											open={Boolean(anchorEl)}
+											onClose={handleCloseMenu}
+										>
+											{
+												user === null ? (
+													<MenuItem onClick={() => history.push("/login")}>Connexion</MenuItem>
+												) : (
+													<>
+														<MenuItem disabled>{user.user_metadata?.full_name || "Inconnu"}</MenuItem>
+														<MenuItem onClick={() => handleLogout()}>Déconnexion</MenuItem>
+													</>
+												)
+											}
+										</Menu>
+									</>
+								) : (user === null ? (
 									<Button color="secondary" onClick={() => history.push("/login")}>
 										Connexion
 										<AccountCircleIcon className={classes.installButtonIcon} />
@@ -126,7 +149,7 @@ const Header = (props: HeaderProps) => {
 												<MenuItem onClick={() => handleLogout()}>Déconnexion</MenuItem>
 											</Menu>
 										</>
-									)
+									))
 							}
 						</Grid>
 					</Grid>
