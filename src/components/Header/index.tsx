@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { AppBar, Button, Grid, Toolbar, Typography, useMediaQuery, Menu, MenuItem } from '@material-ui/core';
+import React, { useState } from 'react';
+import { AppBar, Button, Grid, Toolbar, Typography, useMediaQuery, Menu, MenuItem, Tabs, Tab } from '@material-ui/core';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { useHistory } from 'react-router-dom';
@@ -18,14 +18,11 @@ interface PageType {
 
 const pages: PageType[] = [
 	{
-		id: "home",
-		name: "Home"
+		id: "",
+		name: "Ma liste"
 	}, {
 		id: "lists",
 		name: "Toutes les listes"
-	}, {
-		id: "me",
-		name: "Ma liste"
 	}, {
 		id: "calendar",
 		name: "Calendrier"
@@ -36,12 +33,17 @@ const Header = (props: HeaderProps) => {
 	const isMobile = useMediaQuery('(max-width:555px)');
 	const classes = useStyles(isMobile);
 	const history = useHistory();
-	const { page } = props;
 	const [showInstallButton, setShowInstallButton] = useState<boolean>(false);
-	//eslint-disable-next-line
-	const [selectedPage, setPage] = useState<PageType | undefined>(page ? pages.find(p => p.id === page) : undefined);
 	const { user, logout } = useAuth();
 	const [anchorEl, setAnchorEl] = useState(null);
+	const selectedPageIdx = props.page ? pages.findIndex(p => p.id === props.page) : 0;
+
+	const handlePageChange = (pageIdx: number) => {
+		const selectedPageID = pages[pageIdx].id;
+		if (props.page !== selectedPageID) {
+			history.push(`/${selectedPageID}`);
+		}
+	};
 
 	const handleLogout = () => {
 		handleCloseMenu();
@@ -81,12 +83,6 @@ const Header = (props: HeaderProps) => {
 		}
 	};
 
-	useEffect(() => {
-		if (selectedPage !== undefined && !history.location.pathname.includes(selectedPage.id)) {
-			history.push(`/${selectedPage.id}`);
-		}
-	}, [selectedPage, history]);
-
 	return (
 		<Grid container className={classes.root}>
 			<AppBar position="sticky" color="primary">
@@ -96,6 +92,21 @@ const Header = (props: HeaderProps) => {
 							<img src="/logo192.png" height="64" alt="Lord of the rings related app logo" />
 							<Typography variant="h3" className={classes.title}>Caudex</Typography>
 						</Grid>
+						{
+							isMobile ? ("") : (
+								<Tabs
+									aria-label="tab menu"
+									value={selectedPageIdx}
+									onChange={(_, newValue) => handlePageChange(newValue)}
+								>
+									{
+										pages.map((page: PageType, idx: number) => (
+											<Tab key={idx} label={page.name} />
+										))
+									}
+								</Tabs>
+							)
+						}
 						<Grid item container justify="flex-end" xs className={classes.installButtonContainer}>
 							{
 								showInstallButton ? (
@@ -121,11 +132,11 @@ const Header = (props: HeaderProps) => {
 												user === null ? (
 													<MenuItem onClick={() => history.push("/login")}>Connexion</MenuItem>
 												) : (
-													<>
-														<MenuItem disabled>{user.user_metadata?.full_name || "Inconnu"}</MenuItem>
-														<MenuItem onClick={() => handleLogout()}>Déconnexion</MenuItem>
-													</>
-												)
+														<>
+															<MenuItem disabled>{user.user_metadata?.full_name || "Inconnu"}</MenuItem>
+															<MenuItem onClick={() => handleLogout()}>Déconnexion</MenuItem>
+														</>
+													)
 											}
 										</Menu>
 									</>
