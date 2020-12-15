@@ -11,7 +11,8 @@ const useStyles = makeStyles(() => createStyles({
 		height: "10%"
 	},
 	slug: {
-		height: "90%"
+		height: "90%",
+		overflow: "scroll"
 	},
 	fallback: {
 		height: "calc(100% - 64px)"

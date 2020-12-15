@@ -27,11 +27,21 @@ const MyWishes = () => {
 	const [deleteWishWithID, setDeleteWishWithID] = useState<string | undefined>(undefined);
 
 	const openCreateEditWishDialog = (wishID: string | undefined) => {
-		console.log("data: ", data)
+		console.log("data: ", data);
+		const wishObject: IWish = {
+			id: "",
+			title: "",
+			link: "",
+			imageURL: "",
+			price: "",
+			created: {
+				for: netlifyIdentity.currentUser()?.email || ""
+			}
+		};
 		if (wishID === undefined) {
-			setWish({ id: "", title: "", link: "", created: { for: netlifyIdentity.currentUser()?.email || "" } });
+			setWish(wishObject);
 		} else {
-			setWish(data?.wishes?.find((wish: any) => wish.id === wishID));
+			setWish(Object.assign({}, wishObject, data?.wishes?.find((wish: any) => wish.id === wishID)));
 		}
 	};
 
@@ -115,10 +125,14 @@ const MyWishes = () => {
 								</Grid>
 								<Grid item container direction="row-reverse">
 									<Grid item>
-										<Button variant="contained" color="secondary" onClick={() => handleOpenWish(wish.link)}>
-											<span style={{ color: "#e8272c" }}>Voir</span>
-											<OpenInNewIcon color="primary" style={{ marginLeft: "7px" }} />
-										</Button>
+										{
+											wish.link !== "" ? (
+												<Button variant="contained" color="secondary" onClick={() => handleOpenWish(wish.link)}>
+													<span style={{ color: "#e8272c" }}>Voir</span>
+													<OpenInNewIcon color="primary" style={{ marginLeft: "7px" }} />
+												</Button>
+											) : ("")
+										}
 									</Grid>
 								</Grid>
 							</Grid>
@@ -175,12 +189,29 @@ const MyWishes = () => {
 						onChange={({ target: { value } }) => setWish(Object.assign({}, wish, { title: value }))}
 						style={{ marginTop: "13px" }}
 						fullWidth
+						required
 					/>
 					<TextField
-						label="Lien"
+						label="Lien (optionnel)"
 						variant="outlined"
 						value={wish?.link}
 						onChange={({ target: { value } }) => setWish(Object.assign({}, wish, { link: value }))}
+						style={{ marginTop: "13px" }}
+						fullWidth
+					/>
+					<TextField
+						label="Image (optionnel)"
+						variant="outlined"
+						value={wish?.imageURL}
+						onChange={({ target: { value } }) => setWish(Object.assign({}, wish, { imageURL: value }))}
+						style={{ marginTop: "13px" }}
+						fullWidth
+					/>
+					<TextField
+						label="Prix (optionnel)"
+						variant="outlined"
+						value={wish?.price}
+						onChange={({ target: { value } }) => setWish(Object.assign({}, wish, { price: value }))}
 						style={{ marginTop: "13px" }}
 						fullWidth
 					/>
