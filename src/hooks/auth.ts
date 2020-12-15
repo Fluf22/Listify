@@ -11,21 +11,22 @@ export const useProvideAuth = () => {
 	const [user, setUser] = useState<netlifyIdentity.User | null>(netlifyIdentity.currentUser());
 
 	const login = (callback: any) => {
-		netlifyIdentity.open();
 		netlifyIdentity.off('login');
 		netlifyIdentity.on('login', (user: any) => {
 			setUser(user);
 			callback(user);
+			netlifyIdentity.close();
 		});
+		netlifyIdentity.open();
 	};
 
 	const logout = (callback: any) => {
-		netlifyIdentity.logout();
 		netlifyIdentity.off('logout');
 		netlifyIdentity.on('logout', () => {
 			setUser(null);
 			callback();
 		});
+		netlifyIdentity.logout();
 	};
 
 	return {

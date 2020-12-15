@@ -82,7 +82,7 @@ const MyWishes = () => {
 					{
 						data?.wishes.map((wish: any, idx: number) => (
 							<Grid
-								key={idx}
+								key={btoa((new Date()).toUTCString() + `${idx}`)}
 								item
 								container
 								direction="column"
@@ -124,27 +124,10 @@ const MyWishes = () => {
 							</Grid>
 						))
 					}
-					{/* <Grid
-						item
-						container
-						direction="column"
-						xs={12}
-						sm={6}
-						lg={3}
-						style={{
-							width: "300px",
-							height: "300px",
-							margin: "20px",
-							padding: "0px"
-						}}
-					>
-						<Button variant="contained" color="secondary" onClick={() => openCreateEditWishDialog(undefined)} style={{ width: "100%", height: "100%" }}>
-							<AddIcon color="primary" />
-						</Button>
-					</Grid> */}
 					{
-						[0, 1, 2, 3, 4].map((item, key) => (
+						[0, 1, 2, 3, 4].map((item: number) => (
 							<Grid
+								key={btoa((new Date()).toUTCString() + `${item}`)}
 								item
 								container
 								direction="column"
