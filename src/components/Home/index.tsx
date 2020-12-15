@@ -17,8 +17,8 @@ interface HomeRouteProps {
 };
 
 const Home = (props: RouteComponentProps<HomeRouteProps>) => {
-	const classes = useStyles();
 	const isMobile = useMediaQuery('(max-width:555px)');
+	const classes = useStyles(isMobile);
 
 	return (
 		<Grid container direction="column" className={classes.root}>

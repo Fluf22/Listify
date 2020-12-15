@@ -10,10 +10,11 @@ const useStyles = makeStyles(() => createStyles({
 	categorySelector: {
 		height: "10%"
 	},
-	slug: {
-		height: "90%",
-		overflow: "scroll"
-	},
+	slug: isMobile => ({
+		height: isMobile ? "calc(100% - 56px)" : "100%",
+		overflow: "auto",
+		paddingBottom: isMobile ? "64px" : "0px"
+	}),
 	fallback: {
 		height: "calc(100% - 64px)"
 	}
