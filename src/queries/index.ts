@@ -15,7 +15,9 @@ export const useGetAllWishes = () => useQuery("wishes", () => axios.request({
 	method: "GET",
 	url: "/wishes",
 	...axiosCfg
-}).then((res) => res.data));
+}).then((res) => res.data).catch(err => {
+	console.log("Err retrieving wishes: ", err);
+}).finally(() => netlifyIdentity.refresh()));
 
 export const usePostWish = () => {
 	const queryClient = useQueryClient();
@@ -30,8 +32,12 @@ export const usePostWish = () => {
 			enqueueSnackbar("Nouvelle idée ajoutée !", { variant: "success" });
 			queryClient.invalidateQueries("wishes");
 		},
-		onError: () => {
+		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
+			console.log("Err POST wish: ", error);
+		},
+		onSettled: () => {
+			netlifyIdentity.refresh();
 		}
 	})
 };
@@ -49,8 +55,12 @@ export const usePutWish = () => {
 			enqueueSnackbar("L'idée a été mise à jour !", { variant: "success" });
 			queryClient.invalidateQueries("wishes");
 		},
-		onError: () => {
+		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
+			console.log("Err PUT wish: ", error);
+		},
+		onSettled: () => {
+			netlifyIdentity.refresh();
 		}
 	})
 };
@@ -67,8 +77,12 @@ export const useDeleteWish = () => {
 			enqueueSnackbar("Idée supprimée !", { variant: "success" });
 			queryClient.invalidateQueries("wishes");
 		},
-		onError: () => {
+		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
+			console.log("Err DELETE wish: ", error);
+		},
+		onSettled: () => {
+			netlifyIdentity.refresh();
 		}
 	})
 };
