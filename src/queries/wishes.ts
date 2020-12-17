@@ -17,7 +17,7 @@ export const useGetAllWishes = (wishesUserMail: string) => useQuery(["wishes", w
 	...axiosCfg
 }).then((res) => res.data).catch(err => {
 	console.log("Err retrieving wishes: ", err);
-}).finally(() => netlifyIdentity.refresh()), { refetchOnWindowFocus: false });
+}).finally(() => netlifyIdentity.refresh().catch(() => netlifyIdentity.logout())), { refetchOnWindowFocus: false });
 
 export const usePostWish = () => {
 	const queryClient = useQueryClient();
@@ -37,7 +37,7 @@ export const usePostWish = () => {
 			console.log("Err POST wish: ", error);
 		},
 		onSettled: () => {
-			netlifyIdentity.refresh();
+			netlifyIdentity.refresh().catch(() => netlifyIdentity.logout());
 		}
 	})
 };
@@ -61,7 +61,7 @@ export const usePutWish = () => {
 			console.log("Err PUT wish: ", error);
 		},
 		onSettled: () => {
-			netlifyIdentity.refresh();
+			netlifyIdentity.refresh().catch(() => netlifyIdentity.logout());
 		}
 	})
 };
@@ -83,7 +83,7 @@ export const useDeleteWish = () => {
 			console.log("Err DELETE wish: ", error);
 		},
 		onSettled: () => {
-			netlifyIdentity.refresh();
+			netlifyIdentity.refresh().catch(() => netlifyIdentity.logout());
 		}
 	})
 };
