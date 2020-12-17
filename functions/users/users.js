@@ -20,47 +20,47 @@ const handler = async (event, context) => {
 
 	switch (event.httpMethod) {
 		case 'GET':
-			// e.g. GET /.netlify/functions/wishes
+			// e.g. GET /.netlify/functions/users
 			if (segments.length === 0) {
 				return readAllRoute.handler(event, context, userMail)
 			}
-			// e.g. GET /.netlify/functions/wishes/123456
+			// e.g. GET /.netlify/functions/users/123456
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return readRoute.handler(event, userMail)
+				return readRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,
 				body:
-					'too many segments in GET request, must be either /.netlify/functions/wishes or /.netlify/functions/wishes/123456',
+					'too many segments in GET request, must be either /.netlify/functions/users or /.netlify/functions/users/123456',
 			}
 
 		case 'POST':
-			// e.g. POST /.netlify/functions/wishes with a body of key value pair objects, NOT strings
+			// e.g. POST /.netlify/functions/users with a body of key value pair objects, NOT strings
 			return createRoute.handler(event, context, userMail)
 		case 'PUT':
-			// e.g. PUT /.netlify/functions/wishes/123456 with a body of key value pair objects, NOT strings
+			// e.g. PUT /.netlify/functions/users/123456 with a body of key value pair objects, NOT strings
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return updateRoute.handler(event, userMail)
+				return updateRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,
-				body: 'invalid segments in POST request, must be /.netlify/functions/wishes/123456',
+				body: 'invalid segments in POST request, must be /.netlify/functions/users/123456',
 			}
 
 		case 'DELETE':
-			// e.g. DELETE /.netlify/functions/wishes/123456
+			// e.g. DELETE /.netlify/functions/users/123456
 			if (segments.length === 1) {
 				const [id] = segments
 				event.id = id
-				return deleteRoute.handler(event, userMail)
+				return deleteRoute.handler(event, context, userMail)
 			}
 			return {
 				statusCode: 500,
-				body: 'invalid segments in DELETE request, must be /.netlify/functions/wishes/123456',
+				body: 'invalid segments in DELETE request, must be /.netlify/functions/users/123456',
 			}
 		default:
 			return {

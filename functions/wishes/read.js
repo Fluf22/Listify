@@ -7,25 +7,35 @@ const client = new Client({
 	secret: process.env.FAUNADB_SERVER_SECRET,
 })
 
-const handler = async (event) => {
-	const { id } = event
-	console.log(`Function 'read' invoked. Read id: ${id}`)
+const handler = async (event, userMail) => {
+	const { id: wishesUserMail } = event;
+	console.log(`Function 'read' invoked. Read id: ${wishesUserMail}`)
+
 	return client
-		.query(query.Get(query.Ref(`classes/wishes/${id}`)))
+		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes'))))
 		.then((response) => {
-			console.log('success', response)
-			return {
-				statusCode: 200,
-				body: JSON.stringify(response),
-			}
-		})
-		.catch((error) => {
+			const itemRefs = response.data
+			// create new query out of item refs. http://bit.ly/2LG3MLg
+			const getAllItemsDataQuery = itemRefs.map((ref) => {
+				return query.Get(ref)
+			})
+			// then query the refs
+			return client.query(getAllItemsDataQuery).then((ret) => {
+				return {
+					statusCode: 200,
+					body: JSON.stringify(ret.map(item => ({
+						...item.data,
+						id: item.ref.id
+					})).filter(item => wishesUserMail === userMail ? item.created.by === userMail && item.created.for === userMail : item.created.for === wishesUserMail)),
+				}
+			})
+		}).catch((error) => {
 			console.log('error', error)
 			return {
 				statusCode: 400,
 				body: JSON.stringify(error),
 			}
-		})
+		});
 }
 
 module.exports = { handler }

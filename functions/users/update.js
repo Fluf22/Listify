@@ -7,22 +7,12 @@ const client = new Client({
 	secret: process.env.FAUNADB_SERVER_SECRET,
 })
 
-const handler = async (event, userMail) => {
+const handler = async (event) => {
 	const data = JSON.parse(event.body)
 	const { id } = event
 	console.log(`Function 'update' invoked. update id: ${id}`)
 	return client
-	.query(query.Get(query.Ref(`classes/wishes/${id}`)))
-	.then((originalWish) => {
-		console.log('success', originalWish)
-		if (userMail !== originalWish.data.created.by) {
-			return {
-				statusCode: 401,
-				body: "Unauthorized"
-			};
-		}
-		return client
-		.query(query.Update(query.Ref(`classes/wishes/${id}`), { data }))
+		.query(query.Update(query.Ref(`classes/users/${id}`), { data }))
 		.then((response) => {
 			console.log('success', response)
 			return {
@@ -37,14 +27,6 @@ const handler = async (event, userMail) => {
 				body: JSON.stringify(error),
 			}
 		})
-	})
-	.catch((error) => {
-		console.log('error', error)
-		return {
-			statusCode: 400,
-			body: JSON.stringify(error),
-		}
-	});
 }
 
 module.exports = { handler }
