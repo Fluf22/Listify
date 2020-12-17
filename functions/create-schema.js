@@ -41,6 +41,18 @@ const createFaunaDB = () => new Promise((resolve, reject) => {
 			);
 		}).then(() => {
 			console.log("Created messages index");
+			return client.query(query.Create(query.Ref("classes"), { name: "users" }));
+		}).then(() => {
+			console.log("Created users class");
+			return client.query(
+				query.Create(query.Ref("indexes"), {
+					name: "all_users",
+					source: query.Ref("classes/users"),
+					active: true
+				}),
+			);
+		}).then(() => {
+			console.log("Created users index");
 			resolve();
 		}).catch((error) => {
 			if (error.requestResult.statusCode === 400 && error.message === 'instance not unique') {

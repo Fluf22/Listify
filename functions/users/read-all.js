@@ -11,7 +11,7 @@ const handler = async (event, context, userMail) => {
 	console.log("Function `read-all` invoked");
 
 	return client
-		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes'))))
+		.query(query.Paginate(query.Match(query.Ref('indexes/all_users'))))
 		.then((response) => {
 			const itemRefs = response.data
 			// create new query out of item refs. http://bit.ly/2LG3MLg
@@ -22,10 +22,7 @@ const handler = async (event, context, userMail) => {
 			return client.query(getAllItemsDataQuery).then((ret) => {
 				return {
 					statusCode: 200,
-					body: JSON.stringify(ret.map(item => ({
-						...item.data,
-						id: item.ref.id
-					})).filter(item => item.created.by === userMail && item.created.for === userMail)),
+					body: JSON.stringify(ret.map(item => item.data).filter(item => item.email !== userMail).sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))),
 				}
 			})
 		}).catch((error) => {

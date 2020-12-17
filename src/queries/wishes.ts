@@ -11,13 +11,13 @@ const axiosCfg: AxiosRequestConfig = {
 	}
 };
 
-export const useGetAllWishes = () => useQuery("wishes", () => axios.request({
+export const useGetAllWishes = (wishesUserMail: string) => useQuery(["wishes", wishesUserMail], () => axios.request({
 	method: "GET",
-	url: "/wishes",
+	url: `/wishes/${wishesUserMail}`,
 	...axiosCfg
 }).then((res) => res.data).catch(err => {
 	console.log("Err retrieving wishes: ", err);
-}).finally(() => netlifyIdentity.refresh()));
+}).finally(() => netlifyIdentity.refresh()), { refetchOnWindowFocus: false });
 
 export const usePostWish = () => {
 	const queryClient = useQueryClient();
@@ -28,9 +28,9 @@ export const usePostWish = () => {
 		data: wishToPost,
 		...axiosCfg
 	}), {
-		onSuccess: () => {
+		onSuccess: ({ data: { data: wish } }: any) => {
 			enqueueSnackbar("Nouvelle idée ajoutée !", { variant: "success" });
-			queryClient.invalidateQueries("wishes");
+			queryClient.invalidateQueries(["wishes", wish.created.for]);
 		},
 		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
@@ -51,9 +51,10 @@ export const usePutWish = () => {
 		data: wishToPost,
 		...axiosCfg
 	}), {
-		onSuccess: () => {
+		onSuccess: ({ data: { data: wish } }: any) => {
 			enqueueSnackbar("L'idée a été mise à jour !", { variant: "success" });
-			queryClient.invalidateQueries("wishes");
+			console.log("Coucou: ", wish)
+			queryClient.invalidateQueries(["wishes", wish.created.for]);
 		},
 		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
@@ -73,9 +74,9 @@ export const useDeleteWish = () => {
 		url: `/wishes/${wishID}`,
 		...axiosCfg
 	}), {
-		onSuccess: () => {
+		onSuccess: ({ data: { data: wish } }: any) => {
 			enqueueSnackbar("Idée supprimée !", { variant: "success" });
-			queryClient.invalidateQueries("wishes");
+			queryClient.invalidateQueries(["wishes", wish.created.for]);
 		},
 		onError: (error) => {
 			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });

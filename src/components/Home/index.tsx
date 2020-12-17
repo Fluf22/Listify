@@ -11,6 +11,7 @@ const NotFound = React.lazy(() => import('../NotFound'));
 const Login = React.lazy(() => import('../Login'));
 const PrivateRoute = React.lazy(() => import('../Auth/private-route'));
 const MyWishes = React.lazy(() => import('../MyWishes'));
+const WishLists = React.lazy(() => import('../WishLists'));
 
 interface HomeRouteProps {
 	slug?: string;
@@ -32,6 +33,9 @@ const Home = (props: RouteComponentProps<HomeRouteProps>) => {
 							</Grid>
 						}>
 							<Switch>
+								<PrivateRoute path="/lists/:wishesUserMail?">
+									<WishLists />
+								</PrivateRoute>
 								<PrivateRoute exact path="/">
 									<MyWishes />
 								</PrivateRoute>
