@@ -97,7 +97,7 @@ const UserWishes = (props: IUserWishesProps) => {
 							<Grid item container direction="row" wrap="wrap" spacing={3} justify="space-around">
 								{
 									wishes?.map((wish: IWish, idx: number) => (
-										<Grid key={btoa((new Date()).toString() + idx.toString())} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }} className={classes.cardGridItem}>
+										<Grid key={btoa(`${(new Date()).valueOf()}${idx.toString()}`)} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }} className={classes.cardGridItem}>
 											<Card className={classes.cardRoot} variant="outlined">
 												<CardContent>
 													<Typography variant="h5" component="h2" color="secondary">
