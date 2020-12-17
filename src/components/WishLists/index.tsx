@@ -58,7 +58,7 @@ const WishLists = () => {
 							<Grid item container direction="row" wrap="wrap">
 								{
 									users?.map((user: IUser, idx: number) => (
-										<Grid key={btoa((new Date()).toString() + idx.toString())} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }}>
+										<Grid key={btoa(`${(new Date()).valueOf()}${idx.toString()}`)} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }}>
 											<Card key={idx} className={classes.cardRoot} color="primary">
 												<CardContent>
 													<Typography variant="h5" component="h2" color="primary">
