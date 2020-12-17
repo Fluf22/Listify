@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => createStyles({
 		position: "fixed",
 		right: "20px",
 		bottom: isMobile ? "76px" : "20px",
-		backgroundColor: "#13aa52"
+		backgroundColor: "#13aa52 !important"
 	})
 }));
 
