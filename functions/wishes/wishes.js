@@ -3,12 +3,13 @@ const deleteRoute = require('./delete')
 const readRoute = require('./read')
 const readAllRoute = require('./read-all')
 const updateRoute = require('./update')
+const patchRoute = require('./patch')
 
 const handler = async (event, context) => {
 	const path = event.path.replace(/\.netlify\/functions\/[^/]+/, '');
 	const segments = path.split('/').filter(Boolean);
 
-	console.log("User: ", context.clientContext)
+	// console.log("User: ", context.clientContext)
 	const { user } = context.clientContext;
 	if (user === undefined || user.email === undefined || user.app_metadata === undefined || user.app_metadata.roles === undefined || !user.app_metadata.roles.includes("user")) {
 		return {
@@ -17,6 +18,7 @@ const handler = async (event, context) => {
 		};
 	}
 	const userMail = user.email;
+	const userName = user.user_metadata.full_name;
 
 	switch (event.httpMethod) {
 		case 'GET':
@@ -50,7 +52,17 @@ const handler = async (event, context) => {
 				statusCode: 500,
 				body: 'invalid segments in POST request, must be /.netlify/functions/wishes/123456',
 			}
-
+		case "PATCH":
+			// e.g. PATCH /.netlify/functions/wishes/123456 with a body of key value pair objects, NOT strings
+			if (segments.length === 1) {
+				const [id] = segments
+				event.id = id
+				return patchRoute.handler(event, userMail, userName);
+			}
+			return {
+				statusCode: 500,
+				body: 'invalid segments in PATCH request, must be /.netlify/functions/wishes/123456',
+			}
 		case 'DELETE':
 			// e.g. DELETE /.netlify/functions/wishes/123456
 			if (segments.length === 1) {
@@ -65,7 +77,7 @@ const handler = async (event, context) => {
 		default:
 			return {
 				statusCode: 500,
-				body: 'unrecognized HTTP Method, must be one of GET/POST/PUT/DELETE',
+				body: 'unrecognized HTTP Method, must be one of GET/POST/PUT/PATCH/DELETE',
 			}
 	}
 }

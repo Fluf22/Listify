@@ -8,7 +8,7 @@ const handler = async (event, context) => {
 	const path = event.path.replace(/\.netlify\/functions\/[^/]+/, '');
 	const segments = path.split('/').filter(Boolean);
 
-	console.log("User: ", context.clientContext)
+	// console.log("User: ", context.clientContext)
 	const { user } = context.clientContext;
 	if (user === undefined || user.email === undefined || user.app_metadata === undefined || user.app_metadata.roles === undefined || !user.app_metadata.roles.includes("user")) {
 		return {

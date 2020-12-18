@@ -22,9 +22,9 @@ const handler = async (event, context, userMail) => {
 			return client.query(getAllItemsDataQuery).then((ret) => {
 				return {
 					statusCode: 200,
-					body: JSON.stringify(ret.map(item => ({
-						...item.data,
-						id: item.ref.id
+					body: JSON.stringify(ret.map(item => Object.assign({}, item.data, {
+						id: item.ref.id,
+						offeredBy: []
 					})).filter(item => item.created.by === userMail && item.created.for === userMail)),
 				}
 			})

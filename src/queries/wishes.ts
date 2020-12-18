@@ -53,7 +53,32 @@ export const usePutWish = () => {
 	}), {
 		onSuccess: ({ data: { data: wish } }: any) => {
 			enqueueSnackbar("L'idée a été mise à jour !", { variant: "success" });
-			console.log("Coucou: ", wish)
+			queryClient.invalidateQueries(["wishes", wish.created.for]);
+		},
+		onError: (error) => {
+			enqueueSnackbar("Une erreur est survenue...", { variant: "error" });
+			console.log("Err PUT wish: ", error);
+		},
+		onSettled: () => {
+			netlifyIdentity.refresh().catch(() => netlifyIdentity.logout());
+		}
+	})
+};
+
+export const usePatchWish = () => {
+	const queryClient = useQueryClient();
+	const { enqueueSnackbar } = useSnackbar();
+	return useMutation(({ wishID, type, percentage }: { wishID: string, type: "REDEEM" | "REMOVE", percentage: number }) => axios.request({
+		method: "PATCH",
+		url: `/wishes/${wishID}`,
+		data: {
+			type,
+			percentage
+		},
+		...axiosCfg
+	}), {
+		onSuccess: ({ data: { data: wish } }: any) => {
+			enqueueSnackbar("Participation mise à jour !", { variant: "success" });
 			queryClient.invalidateQueries(["wishes", wish.created.for]);
 		},
 		onError: (error) => {
