@@ -21,8 +21,9 @@ const handler = async (event, userMail) => {
 				body: "Unauthorized"
 			};
 		}
+		let newWishData = Object.assign({}, originalWish.data, data, { offeredBy: originalWish.data.offeredBy });
 		return client
-		.query(query.Update(query.Ref(`classes/wishes/${id}`), { data }))
+		.query(query.Update(query.Ref(`classes/wishes/${id}`), { data: newWishData }))
 		.then((response) => {
 			console.log('success', response)
 			return {

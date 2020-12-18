@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { useDeleteWish, useGetAllWishes, usePostWish, usePutWish } from '../../queries/wishes';
+import { useDeleteWish, useGetAllWishes, usePostWish, usePutWish, usePatchWish } from '../../queries/wishes';
 import WarningIcon from '@material-ui/icons/Warning';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import AddIcon from '@material-ui/icons/Add';
+import RedeemIcon from '@material-ui/icons/Redeem';
+import CancelIcon from '@material-ui/icons/Cancel';
 import CloseIcon from '@material-ui/icons/Close';
 import useStyles from './styles';
-import { Grid, CircularProgress, Typography, Card, CardContent, CardActions, Button, useMediaQuery, AppBar, Dialog, DialogActions, DialogContent, Fab, IconButton, TextField, Toolbar, Slide } from '@material-ui/core';
+import { Grid, CircularProgress, Typography, Card, CardContent, CardActions, Button, useMediaQuery, AppBar, Dialog, DialogActions, DialogContent, Fab, IconButton, TextField, Toolbar, Slide, Slider } from '@material-ui/core';
 import { IWish } from '../../interfaces';
 import netlifyIdentity from 'netlify-identity-widget';
 import { useSnackbar } from 'notistack';
@@ -27,8 +29,10 @@ const UserWishes = (props: IUserWishesProps) => {
 	const { mutate: createWish } = usePostWish();
 	const { mutate: editWish } = usePutWish();
 	const { mutate: deleteWish } = useDeleteWish();
+	const { mutate: redeemWish } = usePatchWish();
 	const [wish, setWish] = useState<IWish | undefined>(undefined);
 	const [deleteWishWithID, setDeleteWishWithID] = useState<string | undefined>(undefined);
+	const [redeemWishData, setRedeemWishData] = useState<{ type: "REDEEM" | "REMOVE", wish: IWish, percentage: number } | undefined>(undefined);
 	const { enqueueSnackbar } = useSnackbar();
 
 	const openCreateEditWishDialog = (wishID: string | undefined) => {
@@ -76,6 +80,18 @@ const UserWishes = (props: IUserWishesProps) => {
 		}
 	};
 
+	const handleRedeemWish = () => {
+		if (redeemWishData !== undefined) {
+			console.log("Redeem wish: ", redeemWishData);
+			redeemWish({
+				wishID: redeemWishData.wish.id || "-1",
+				type: redeemWishData.type,
+				percentage: redeemWishData.percentage
+			});
+			setRedeemWishData(undefined);
+		}
+	};
+
 	const handleOpenWish = (link: string) => {
 		window.open(link, "_blank");
 	};
@@ -100,21 +116,6 @@ const UserWishes = (props: IUserWishesProps) => {
 										<Grid key={btoa(`${(new Date()).valueOf()}${idx.toString()}`)} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }} className={classes.cardGridItem}>
 											<Card className={classes.cardRoot} variant="outlined">
 												<CardContent>
-													<Typography variant="h5" component="h2" color="secondary">
-														{wish.title}
-													</Typography>
-													<Typography color="textSecondary">
-														{
-															wish.created.by !== wish.created.for ? (`Proposé par : ${wish.created.by}`) : ""
-														}
-													</Typography>
-													<Typography color="textSecondary">
-														{
-															wish.offeredBy && wish.offeredBy?.length > 0 ? (`Offert par : ${wish.offeredBy.map(el => el.name).join(", ")}`) : ""
-														}
-													</Typography>
-												</CardContent>
-												<CardActions>
 													<Grid container direction="row" justify="space-between" alignItems="center">
 														{
 															wish.created.by === netlifyIdentity.currentUser()?.email ? (
@@ -131,18 +132,90 @@ const UserWishes = (props: IUserWishesProps) => {
 																	</Grid>
 																</Grid>
 															) : (
-																<Grid item style={{ maxWidth: "50%" }}>
-																</Grid>
-															)
+																	<Grid item style={{ maxWidth: "50%" }}></Grid>
+																)
 														}
-														<Grid item style={{ maxWidth: "50%", display: "flex", justifyContent: "flex-end" }}>
+														<Grid item container direction="row" justify="flex-end" style={{ maxWidth: "50%" }}>
 															{
 																wish.link !== "" ? (
-																	<Button variant="contained" color="secondary" onClick={() => handleOpenWish(wish.link)}>
-																		<span style={{ color: "#e8272c" }}>Voir</span>
-																		<OpenInNewIcon color="primary" style={{ marginLeft: "7px" }} />
-																	</Button>
-																) : ("")
+																	<Grid item>
+																		<Button variant="contained" color="secondary" onClick={() => handleOpenWish(wish.link)}>
+																			<span style={{ color: "#e8272c" }}>Voir</span>
+																			<OpenInNewIcon color="primary" style={{ marginLeft: "7px" }} />
+																		</Button>
+																	</Grid>
+																) : (
+																		<Grid item>
+																			<Button disabled variant="contained" color="secondary">
+																				<span style={{ color: "#e8272c" }}>Voir</span>
+																				<OpenInNewIcon color="primary" style={{ marginLeft: "7px" }} />
+																			</Button>
+																		</Grid>
+																	)
+															}
+														</Grid>
+													</Grid>
+													<Grid item style={{ marginTop: "16px" }}>
+														<Typography variant="h5" component="h2" color="secondary">
+															{wish.title}
+														</Typography>
+													</Grid>
+													<Grid item>
+														<Typography color="textSecondary">
+															{
+																wish.created.by !== wish.created.for ? (`Proposé par : ${wish.created.by}`) : ""
+															}
+														</Typography>
+													</Grid>
+													<Grid item>
+														<Typography color="textSecondary">
+															{
+																wish.offeredBy && wish.offeredBy?.length > 0 ? (`Offert par : ${wish.offeredBy.map(el => (`${el.name} (${el.percentage}%)`)).join(", ")}`) : ""
+															}
+														</Typography>
+													</Grid>
+												</CardContent>
+												<CardActions>
+													<Grid container direction="row" justify="space-between" alignItems="center">
+														<Grid item style={{ maxWidth: "50%" }}></Grid>
+														<Grid item style={{ maxWidth: "50%", display: "flex", justifyContent: "flex-end" }}>
+															{
+																wish.created.for === netlifyIdentity.currentUser()?.email ? (
+																	<Grid item style={{ maxWidth: "50%" }}></Grid>
+																) :
+																	wish.offeredBy?.find(el => el.name === netlifyIdentity.currentUser()?.user_metadata.full_name) !== undefined ? (
+																		<Button
+																			variant="contained"
+																			color="secondary"
+																			onClick={() => setRedeemWishData({
+																				type: "REMOVE",
+																				wish,
+																				percentage: 0
+																			})}
+																		>
+																			<span style={{ color: "#e8272c" }}>Ne plus offrir</span>
+																			<CancelIcon color="primary" style={{ marginLeft: "7px" }} />
+																		</Button>
+																	) :
+																		wish.offeredBy === undefined || wish.offeredBy.length === 0 || wish.offeredBy.reduce((acc, cur) => acc + cur.percentage, 0) < 100 ? (
+																			<Button
+																				variant="contained"
+																				color="secondary"
+																				onClick={() => setRedeemWishData({
+																					type: "REDEEM",
+																					wish,
+																					percentage: wish.offeredBy?.reduce((acc: number, cur) => acc + cur.percentage, 0) || 100
+																				})}
+																			>
+																				<span style={{ color: "#e8272c" }}>Offrir</span>
+																				<RedeemIcon color="primary" style={{ marginLeft: "7px" }} />
+																			</Button>
+																		) : (
+																				<Button disabled variant="contained" color="secondary">
+																					<span style={{ color: "#e8272c" }}>Offrir</span>
+																					<RedeemIcon color="primary" style={{ marginLeft: "7px" }} />
+																				</Button>
+																			)
 															}
 														</Grid>
 													</Grid>
@@ -237,6 +310,48 @@ const UserWishes = (props: IUserWishesProps) => {
 					</Button>
 					<Button onClick={() => handleDeleteWish()} color="primary">
 						Supprimer
+					</Button>
+				</DialogActions>
+			</Dialog>
+			<Dialog open={redeemWishData !== undefined} onClose={() => setRedeemWishData(undefined)} TransitionComponent={Transition}>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton edge="start" color="inherit" onClick={() => setRedeemWishData(undefined)} aria-label="close">
+							<CloseIcon />
+						</IconButton>
+						<Typography variant="h6" className={classes.title}>
+							{redeemWishData?.type === "REDEEM" ? "Participer au cadeau" : "Ne plus participer au cadeau"}
+						</Typography>
+					</Toolbar>
+				</AppBar>
+				<DialogContent>
+					{
+						redeemWishData?.type === "REMOVE" ? "Voulez-vous vraiment ne plus participer ?" : (
+							<Grid container direction="column" alignItems="center" style={{ width: "100%", height: "100%", marginTop: "17px" }}>
+								<Grid item>
+									<Typography>Taux de participation</Typography>
+								</Grid>
+								<Grid item style={{ width: "100%" }}>
+									<Slider
+										value={redeemWishData?.percentage}
+										step={10}
+										min={0}
+										max={100 - (redeemWishData?.wish?.offeredBy?.reduce((acc: number, cur: any) => acc + cur.percentage, 0) || 0)}
+										onChange={(_, newValue) => setRedeemWishData(Object.assign({}, redeemWishData, { percentage: newValue }))}
+										valueLabelDisplay="auto"
+										aria-labelledby="wish-participation-percentage"
+									/>
+								</Grid>
+							</Grid>
+						)
+					}
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setRedeemWishData(undefined)} color="primary">
+						Annuler
+					</Button>
+					<Button onClick={() => handleRedeemWish()} color="primary">
+						{redeemWishData?.type === "REDEEM" ? "Participer" : "Ne plus participer"}
 					</Button>
 				</DialogActions>
 			</Dialog>
