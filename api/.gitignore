@@ -1,0 +1,31 @@
+# IDE
+.idea
+
+# Yarn
+.yarn/*
+!.yarn/cache
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Env
+.env
+.env*
+!.env.example
+
+# OS
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+api/yarn-error.log
+lerna-debug.log*
+
+# compiled output
+/dist
+/node_modules

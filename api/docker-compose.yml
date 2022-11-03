@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  database:
+    image: postgres:14.5-alpine
+    env_file: .env
+    volumes:
+      - caudex-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7.0.4-alpine
+    env_file: .env
+    command: redis-server --save 20 1 --loglevel "$REDIS_LOGLEVEL" --requirepass "$REDIS_PASSWORD"
+    volumes:
+      - caudex-cache-volume:/data
+    ports:
+      - '6379:6379'
+
+  broker:
+    image: rabbitmq:3.11.2-management-alpine
+    env_file: .env
+    volumes:
+      - caudex-mq-volume:/var/lib/rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+
+volumes:
+  caudex-db-volume:
+  caudex-cache-volume:
+  caudex-mq-volume:

@@ -1,0 +1,9 @@
+{
+  "name": "caudex",
+  "version": "2.0.0-alpha.1",
+  "description": "Bring user-generated lists to an event to help people gift each other what they wish",
+  "main": "./api/dist/app.js",
+  "repository": "git@github.com:Fluf22/Caudex.git",
+  "author": "Thomas Raffray <Fluf22@users.noreply.github.com>",
+  "license": "MIT"
+}
