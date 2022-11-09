@@ -1,33 +1,133 @@
-version: "3"
-
 services:
   database:
-    image: postgres:14.5-alpine
-    env_file: .env
+    image: postgres:14.5
+    container_name: database
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_HOSTNAME: ${DATABASE_HOSTNAME}
+      DATABASE_PORT: ${DATABASE_PORT}
+      PGDATA: ${PGDATA}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - db_net
     volumes:
       - caudex-db-volume:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
+  fusionauth:
+    image: fusionauth/fusionauth-app:latest
+    container_name: authentication
+    depends_on:
+      database:
+        condition: service_healthy
+      search:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://database:${DATABASE_PORT}/${FUSIONAUTH_DB}
+      DATABASE_ROOT_USERNAME: ${POSTGRES_USER}
+      DATABASE_ROOT_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_USERNAME: ${FUSIONAUTH_DB_USERNAME}
+      DATABASE_PASSWORD: ${FUSIONAUTH_DB_PASSWORD}
+      FUSIONAUTH_APP_MEMORY: ${FUSIONAUTH_APP_MEMORY}
+      FUSIONAUTH_APP_RUNTIME_MODE: ${FUSIONAUTH_APP_RUNTIME_MODE}
+      FUSIONAUTH_APP_URL: ${FUSIONAUTH_APP_URL}
+      SEARCH_SERVERS: ${ES_SERVERS}
+      SEARCH_TYPE: ${FUSIONAUTH_SEARCH_TYPE}
+    networks:
+      - db_net
+      - search_net
+      - mailcatcher_net
+    restart: unless-stopped
+    ports:
+      - "9011:9011"
+    volumes:
+      - caudex-fusionauth-volume:/usr/local/fusionauth/config
+
+  search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    container_name: search
+    environment:
+      ELASTIC_PASSWORD: ${ES_PASSWORD}
+      cluster.name: ${ES_CLUSTER_NAME}
+      bootstrap.memory_lock: ${ES_BOOTSTRAP_MEMORY_LOCK}
+      discovery.type: ${ES_DISCOVERY_TYPE}
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
+    healthcheck:
+      test: curl -u elastic:${ES_PASSWORD} -s -f search:9200/_cat/health >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - search_net
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - caudex-search-volume:/usr/share/elasticsearch/data
+
   redis:
-    image: redis:7.0.4-alpine
-    env_file: .env
+    image: redis:7.0.4
+    container_name: redis
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_TTL: ${REDIS_TTL}
+      REDIS_LOGLEVEL: ${REDIS_LOGLEVEL}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     command: redis-server --save 20 1 --loglevel "$REDIS_LOGLEVEL" --requirepass "$REDIS_PASSWORD"
+    restart: unless-stopped
     volumes:
       - caudex-cache-volume:/data
     ports:
-      - '6379:6379'
+      - "6379:6379"
 
   broker:
-    image: rabbitmq:3.11.2-management-alpine
-    env_file: .env
+    image: rabbitmq:3.11.2-management
+    container_name: broker
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_MAIL_QUEUE: ${RABBITMQ_MAIL_QUEUE}
+      RABBITMQ_SECRET: ${RABBITMQ_SECRET}
     volumes:
       - caudex-mq-volume:/var/lib/rabbitmq
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - "5672:5672"
+      - "15672:15672"
+
+  mailcatcher:
+    image: yappabe/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    networks:
+      - mailcatcher_net
+
+networks:
+  db_net:
+    driver: bridge
+  search_net:
+    driver: bridge
+  mailcatcher_net:
+    driver: bridge
 
 volumes:
   caudex-db-volume:
+  caudex-fusionauth-volume:
+  caudex-search-volume:
   caudex-cache-volume:
   caudex-mq-volume:

@@ -1,22 +1,19 @@
 import {
-  Body,
   Controller,
   Get,
+  HttpStatus,
   Logger,
-  Param,
-  Post,
-  Req,
+  Query,
+  Redirect,
+  Session,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+
 import { AuthService } from './auth.service';
-import { Token } from './models/token.model';
-import { SignupDto } from './dto/signup.dto';
-import { RefreshTokenDto } from './dto/jwt.dto';
-import { LocalAuthGuard } from './local-auth.guard';
-import { User } from '../users/models/user.model';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { LoginDto } from './dto/login.dto';
-import { ResetPasswordDto } from './dto/password.dto';
+import { CookieGuard } from './cookie.guard';
+import { Session as ExpressSession } from 'express-session';
+import { RedirectResponse } from '@nestjs/core/router/router-response-controller';
 
 @ApiTags('auth')
 @Controller({
@@ -28,37 +25,47 @@ export class AuthController {
 
   constructor(private readonly authService: AuthService) {}
 
-  @ApiBody({ type: LoginDto })
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(@Req() request: any): Promise<Token> {
-    const user: User = request.user;
-    return this.authService.generateTokens({ sub: user.email });
+  @Get('login')
+  @Redirect()
+  async initLoginFlow(
+    @Session() session: ExpressSession,
+  ): Promise<RedirectResponse> {
+    this.logger.log('Init login flow');
+    const url = await this.authService.initLoginFlow(session);
+    return {
+      url,
+      statusCode: HttpStatus.FOUND,
+    };
   }
 
-  @Post('signup')
-  async signup(@Body() signupDto: SignupDto): Promise<void> {
-    signupDto.email = signupDto.email.toLowerCase();
-    await this.authService.createUser(signupDto);
+  @Get('oauth-callback')
+  @Redirect()
+  async wrapUpLoginFlow(
+    @Session() session: ExpressSession,
+    @Query('state') stateFromServer: string,
+    @Query('userState') userState: string,
+    @Query('code') code: string,
+  ): Promise<RedirectResponse> {
+    this.logger.log(`Wrap-up login flow (userState: ${userState}`);
+    const url = await this.authService.wrapUpLoginFlow(
+      session,
+      stateFromServer,
+      code,
+    );
+    return {
+      url,
+      statusCode: HttpStatus.FOUND,
+    };
   }
 
-  @Post('token')
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<Token> {
-    return await this.authService.refreshToken(refreshTokenDto.token);
-  }
-
-  @Post('reset-password')
-  async initResetPasswordFlow(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<void> {
-    return await this.authService.initResetPasswordFlow(resetPasswordDto.email);
-  }
-
-  @Get('confirm-email/:userId/:token')
-  async confirmEmail(
-    @Param('userId') userId: string,
-    @Param('token') token: string,
-  ): Promise<void> {
-    await this.authService.confirmEmail(userId, token);
+  @Get('logout')
+  @Redirect()
+  async logout(@Session() session: ExpressSession): Promise<RedirectResponse> {
+    this.logger.log('User called logout');
+    const url = await this.authService.logout(session);
+    return {
+      url,
+      statusCode: HttpStatus.FOUND,
+    };
   }
 }

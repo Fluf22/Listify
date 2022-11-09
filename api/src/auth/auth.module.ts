@@ -1,25 +1,23 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
-import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt.strategy';
-import { PasswordService } from '../password.service';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
-import { LocalStrategy } from './local.strategy';
 import { MAIL_WORKER } from '../constants';
 import { ClientProxyFactory, RmqOptions } from '@nestjs/microservices';
 import { getRabbitMQConfig } from '../microservices/rabbitmq.helper';
+import { PassportModule } from '@nestjs/passport';
+import { AuthSerializer } from './auth.serializer';
+import { FusionAuthService } from '../fusionauth.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   providers: [
     AuthService,
+    AuthSerializer,
+    FusionAuthService,
     ConfigService,
-    PasswordService,
-    LocalStrategy,
-    JwtStrategy,
     PrismaService,
     {
       provide: MAIL_WORKER,
@@ -32,16 +30,9 @@ import { getRabbitMQConfig } from '../microservices/rabbitmq.helper';
   ],
   imports: [
     UsersModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_ACCESS_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRY'),
-        },
-      }),
-      inject: [ConfigService],
+    HttpModule,
+    PassportModule.register({
+      session: true,
     }),
   ],
   controllers: [AuthController],

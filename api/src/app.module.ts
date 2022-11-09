@@ -1,14 +1,25 @@
-import { CacheModule, Module } from '@nestjs/common';
+import {
+  CacheModule,
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
-import * as redisStore from 'cache-manager-redis-store';
-import type { ClientOpts } from 'redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { join } from 'path';
+import * as redisStore from 'cache-manager-redis-store';
+import * as RedisStoreConnect from 'connect-redis';
+import { ClientOpts, RedisClient } from 'redis';
+import * as session from 'express-session';
+import * as passport from 'passport';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { MailWorkerModule } from './microservices/mail-worker/mail-worker.module';
+import { REDIS } from './constants';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -31,10 +42,10 @@ import { MailWorkerModule } from './microservices/mail-worker/mail-worker.module
       useFactory: async (configService: ConfigService) => ({
         store: redisStore,
         host: configService.get<string>('REDIS_HOST'),
-        port: configService.get<string>('REDIS_PORT'),
+        port: parseInt(configService.get<string>('REDIS_PORT')),
         username: configService.get<string>('REDIS_USERNAME'),
         password: configService.get<string>('REDIS_PASSWORD'),
-        ttl: configService.get<string>('REDIS_TTL'),
+        ttl: parseInt(configService.get<string>('REDIS_TTL')),
       }),
       isGlobal: true,
     }),
@@ -44,6 +55,32 @@ import { MailWorkerModule } from './microservices/mail-worker/mail-worker.module
     UsersModule,
     HealthModule,
     MailWorkerModule,
+    RedisModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  constructor(
+    @Inject(REDIS) private readonly redis: RedisClient,
+    private configService: ConfigService,
+  ) {}
+  configure(consumer: MiddlewareConsumer) {
+    const RedisClient = RedisStoreConnect(session);
+    consumer
+      .apply(
+        session({
+          store: new RedisClient({ client: this.redis }),
+          secret: this.configService.get('SESSION_SECRET'),
+          saveUninitialized: false,
+          resave: false,
+          cookie: {
+            secure: this.configService.get('SESSION_SECURE') === 'true',
+            sameSite: this.configService.get('SESSION_SAME_SITE'),
+            httpOnly: true,
+          },
+        }),
+        passport.initialize(),
+        passport.session(),
+      )
+      .forRoutes('*');
+  }
+}

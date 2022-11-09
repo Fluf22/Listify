@@ -1,18 +1,13 @@
-import { NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { RmqOptions } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { PrismaService } from './prisma.service';
-import {
-  MicroserviceOptions,
-  RmqOptions,
-  Transport,
-} from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
-import { X_CAUDEX_KEY } from './constants';
+
+import { AppModule } from './app.module';
 import { getRabbitMQConfig } from './microservices/rabbitmq.helper';
-import { RolesGuard } from './auth/roles.guard';
+import { PrismaService } from './prisma.service';
 
 declare const module: any;
 
@@ -22,7 +17,10 @@ async function bootstrap() {
 
   // Basic security
   app.use(helmet());
-  app.enableCors();
+  app.enableCors({
+    origin: configService.get('APP_HOST'),
+    credentials: true,
+  });
 
   // API configuration
   app.setGlobalPrefix('api');

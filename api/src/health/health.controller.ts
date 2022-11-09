@@ -8,9 +8,8 @@ import {
 } from '@nestjs/terminus';
 import { PrismaHealthIndicator } from '../prisma-health.indicator';
 import { ApiTags } from '@nestjs/swagger';
-import { RmqOptions, Transport } from '@nestjs/microservices';
+import { RedisOptions, RmqOptions, Transport } from '@nestjs/microservices';
 import { getRabbitMQConfig } from '../microservices/rabbitmq.helper';
-import { Decimal } from '@prisma/client/runtime/index-browser';
 import { ConfigService } from '@nestjs/config';
 
 @ApiTags('health')
@@ -25,7 +24,7 @@ export class HealthController {
     private prismaHealthIndicator: PrismaHealthIndicator,
     private diskHealthIndicator: DiskHealthIndicator,
     private memoryHealthIndicator: MemoryHealthIndicator,
-    private rabbitMQHealthIndicator: MicroserviceHealthIndicator,
+    private microserviceHealthIndicator: MicroserviceHealthIndicator,
   ) {}
 
   @Get()
@@ -35,12 +34,26 @@ export class HealthController {
       () => this.prismaHealthIndicator.isHealthy('database'),
       () => {
         const rabbitMQConfig = getRabbitMQConfig(this.configService);
-        return this.rabbitMQHealthIndicator.pingCheck<RmqOptions>('rabbitMQ', {
-          timeout: 5000,
-          transport: Transport.RMQ,
-          options: rabbitMQConfig.options,
-        });
+        return this.microserviceHealthIndicator.pingCheck<RmqOptions>(
+          'rabbitMQ',
+          {
+            timeout: 5000,
+            transport: Transport.RMQ,
+            options: rabbitMQConfig.options,
+          },
+        );
       },
+      () =>
+        this.microserviceHealthIndicator.pingCheck<RedisOptions>('redis', {
+          transport: Transport.REDIS,
+          timeout: 5000,
+          options: {
+            host: this.configService.get('REDIS_HOST'),
+            port: parseInt(this.configService.get<string>('REDIS_PORT')),
+            username: this.configService.get('REDIS_USERNAME'),
+            password: this.configService.get('REDIS_PASSWORD'),
+          },
+        }),
       () =>
         this.diskHealthIndicator.checkStorage('storage', {
           path: '/',

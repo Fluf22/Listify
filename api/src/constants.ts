@@ -10,3 +10,5 @@ export enum ROLES {
   Admin = 'ADMIN',
   User = 'USER',
 }
+
+export const REDIS = Symbol('AUTH:REDIS');
