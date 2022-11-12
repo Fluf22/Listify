@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Inject,
   Logger,
   Query,
   Redirect,
@@ -14,6 +15,8 @@ import { AuthService } from './auth.service';
 import { CookieGuard } from './cookie.guard';
 import { Session as ExpressSession } from 'express-session';
 import { RedirectResponse } from '@nestjs/core/router/router-response-controller';
+import { Public } from 'nest-keycloak-connect';
+import { AUTH_SERVICE } from '../constants';
 
 @ApiTags('auth')
 @Controller({
@@ -23,9 +26,12 @@ import { RedirectResponse } from '@nestjs/core/router/router-response-controller
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    @Inject(AUTH_SERVICE) private readonly authService: AuthService,
+  ) {}
 
   @Get('login')
+  @Public()
   @Redirect()
   async initLoginFlow(
     @Session() session: ExpressSession,
@@ -39,6 +45,7 @@ export class AuthController {
   }
 
   @Get('oauth-callback')
+  @Public()
   @Redirect()
   async wrapUpLoginFlow(
     @Session() session: ExpressSession,
@@ -46,7 +53,7 @@ export class AuthController {
     @Query('userState') userState: string,
     @Query('code') code: string,
   ): Promise<RedirectResponse> {
-    this.logger.log(`Wrap-up login flow (userState: ${userState}`);
+    this.logger.log(`Wrap-up login flow`);
     const url = await this.authService.wrapUpLoginFlow(
       session,
       stateFromServer,

@@ -4,19 +4,21 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
-import { MAIL_WORKER } from '../constants';
+import { AUTH_SERVICE, MAIL_WORKER } from '../constants';
 import { ClientProxyFactory, RmqOptions } from '@nestjs/microservices';
 import { getRabbitMQConfig } from '../microservices/rabbitmq.helper';
 import { PassportModule } from '@nestjs/passport';
-import { AuthSerializer } from './auth.serializer';
-import { FusionAuthService } from '../fusionauth.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
   providers: [
-    AuthService,
-    AuthSerializer,
-    FusionAuthService,
+    {
+      provide: AUTH_SERVICE,
+      useFactory: async (configService: ConfigService) => {
+        return await AuthService.create(configService);
+      },
+      inject: [ConfigService],
+    },
     ConfigService,
     PrismaService,
     {

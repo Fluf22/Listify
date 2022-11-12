@@ -4,6 +4,8 @@ export const prismaUserProfileIncludeQuery = {
 
 export const MAIL_WORKER = 'mail-worker';
 
+export const AUTH_SERVICE = 'auth-service';
+
 export const X_CAUDEX_KEY = 'X-Caudex-Key';
 
 export enum ROLES {

@@ -23,7 +23,7 @@ import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
-    // Basic security again
+    // Security
     ThrottlerModule.forRoot({
       ttl: 60,
       limit: 10,

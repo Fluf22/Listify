@@ -23,7 +23,7 @@ logs
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
-api/yarn-error.log
+caudex-api/yarn-error.log
 lerna-debug.log*
 
 # compiled output

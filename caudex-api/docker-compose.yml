@@ -1,7 +1,8 @@
+version: "3"
+
 services:
   database:
     image: postgres:14.5
-    container_name: database
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -9,6 +10,7 @@ services:
       DATABASE_HOSTNAME: ${DATABASE_HOSTNAME}
       DATABASE_PORT: ${DATABASE_PORT}
       PGDATA: ${PGDATA}
+      KC_DB_SCHEMA: ${KC_DB_SCHEMA}
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
@@ -19,65 +21,39 @@ services:
       - db_net
     volumes:
       - caudex-db-volume:/var/lib/postgresql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
 
-  fusionauth:
-    image: fusionauth/fusionauth-app:latest
-    container_name: authentication
+  authentication:
+    build: ../authentication
     depends_on:
-      database:
-        condition: service_healthy
-      search:
-        condition: service_healthy
+      - database
     environment:
-      DATABASE_URL: jdbc:postgresql://database:${DATABASE_PORT}/${FUSIONAUTH_DB}
-      DATABASE_ROOT_USERNAME: ${POSTGRES_USER}
-      DATABASE_ROOT_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_USERNAME: ${FUSIONAUTH_DB_USERNAME}
-      DATABASE_PASSWORD: ${FUSIONAUTH_DB_PASSWORD}
-      FUSIONAUTH_APP_MEMORY: ${FUSIONAUTH_APP_MEMORY}
-      FUSIONAUTH_APP_RUNTIME_MODE: ${FUSIONAUTH_APP_RUNTIME_MODE}
-      FUSIONAUTH_APP_URL: ${FUSIONAUTH_APP_URL}
-      SEARCH_SERVERS: ${ES_SERVERS}
-      SEARCH_TYPE: ${FUSIONAUTH_SEARCH_TYPE}
+      KC_DB: postgres
+      KC_DB_URL_HOST: database
+      KC_DB_URL_DATABASE: ${POSTGRES_DB}
+      KC_DB_SCHEMA: ${KC_DB_SCHEMA}
+      KC_DB_URL_PORT: ${DATABASE_PORT}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED}
+      KC_METRICS_ENABLED: ${KC_METRICS_ENABLED}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    entrypoint: "/opt/keycloak/bin/kc.sh"
+    command: ${KEYCLOAK_START_COMMAND}
     networks:
       - db_net
-      - search_net
       - mailcatcher_net
     restart: unless-stopped
+    volumes:
+      - ../authentication/realms:/opt/keycloak/data/import
     ports:
-      - "9011:9011"
-    volumes:
-      - caudex-fusionauth-volume:/usr/local/fusionauth/config
-
-  search:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
-    container_name: search
-    environment:
-      ELASTIC_PASSWORD: ${ES_PASSWORD}
-      cluster.name: ${ES_CLUSTER_NAME}
-      bootstrap.memory_lock: ${ES_BOOTSTRAP_MEMORY_LOCK}
-      discovery.type: ${ES_DISCOVERY_TYPE}
-      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
-    healthcheck:
-      test: curl -u elastic:${ES_PASSWORD} -s -f search:9200/_cat/health >/dev/null || exit 1
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - search_net
-    restart: unless-stopped
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - caudex-search-volume:/usr/share/elasticsearch/data
+      - "8080:8080"
 
   redis:
     image: redis:7.0.4
-    container_name: redis
     environment:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
@@ -94,7 +70,6 @@ services:
 
   broker:
     image: rabbitmq:3.11.2-management
-    container_name: broker
     environment:
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
@@ -110,7 +85,6 @@ services:
 
   mailcatcher:
     image: yappabe/mailcatcher
-    container_name: mailcatcher
     ports:
       - "1025:1025"
       - "1080:1080"
@@ -120,14 +94,10 @@ services:
 networks:
   db_net:
     driver: bridge
-  search_net:
-    driver: bridge
   mailcatcher_net:
     driver: bridge
 
 volumes:
   caudex-db-volume:
-  caudex-fusionauth-volume:
-  caudex-search-volume:
   caudex-cache-volume:
   caudex-mq-volume:

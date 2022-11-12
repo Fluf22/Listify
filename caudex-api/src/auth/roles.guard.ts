@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { User } from '../users/models/user.model';
+import { UserinfoResponse } from 'openid-client';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -13,11 +13,15 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user: User = request.user;
+    const user: UserinfoResponse = request.session.user;
     if (!user) {
       return true;
     }
 
-    return roles.includes(user.role);
+    const userRoles: string[] = [
+      ...(request.session.user.resource_access?.account?.roles ?? []),
+    ];
+
+    return roles.some((role: string) => userRoles.includes(role));
   }
 }
