@@ -2,15 +2,44 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
-Table UserProfile {
+Table List {
   id String [pk]
   userId String [unique, not null]
   firstName String
   lastName String
-  role Role [not null, default: 'USER']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+}
+
+Table Wish {
+  id String [pk]
+  title String [not null]
+  description String
+  image String
+  url String
+  addedBy String [not null]
+  order Int [not null]
+  giftedBy Gifter [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+}
+
+Table Gifter {
+  id String [pk]
+  wishId String [not null]
+  gifterId String [not null]
+  amount Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  wish Wish [not null]
 }
 
 Enum Role {
   ADMIN
   USER
 }
+
+Ref: Gifter.wishId > Wish.id

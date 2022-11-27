@@ -8,6 +8,7 @@ import {
   TokenSet,
   UserinfoResponse,
 } from 'openid-client';
+import { List } from '../lists/entities/list.entity';
 
 @Injectable()
 export class AuthService {
@@ -101,5 +102,9 @@ export class AuthService {
         resolve(endSessionUrl);
       });
     });
+  }
+
+  async fetchWishLists(currentUserId: string): Promise<List[]> {
+    return [];
   }
 }

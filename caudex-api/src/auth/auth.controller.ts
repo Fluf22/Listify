@@ -7,12 +7,10 @@ import {
   Query,
   Redirect,
   Session,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
-import { CookieGuard } from './cookie.guard';
 import { Session as ExpressSession } from 'express-session';
 import { RedirectResponse } from '@nestjs/core/router/router-response-controller';
 import { Public } from 'nest-keycloak-connect';

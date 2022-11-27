@@ -16,10 +16,42 @@ enum Role {
   USER
 }
 
-model UserProfile {
+model List {
   id        String  @id @default(uuid())
   userId    String  @unique
   firstName String?
   lastName  String?
-  role      Role    @default(USER)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Wish {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  image       String?
+  url         String?
+  addedBy     String
+  order       Int
+
+  giftedBy Gifter[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Gifter {
+  id       String @id @default(uuid())
+  wishId   String
+  gifterId String
+  amount   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  wish Wish @relation(fields: [wishId], references: [id])
 }
