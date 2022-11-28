@@ -5,6 +5,7 @@ import { WishesModule } from './wishes/wishes.module';
 import { AUTH_SERVICE } from '../constants';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
+import { PrismaService } from '../prisma.service';
 
 @Module({
   controllers: [ListsController],
@@ -18,6 +19,7 @@ import { AuthService } from '../auth/auth.service';
     },
     ConfigService,
     ListsService,
+    PrismaService,
   ],
   imports: [WishesModule],
 })

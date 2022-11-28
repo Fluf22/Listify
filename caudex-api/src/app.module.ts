@@ -21,7 +21,6 @@ import { MailWorkerModule } from './microservices/mail-worker/mail-worker.module
 import { REDIS } from './constants';
 import { RedisModule } from './redis/redis.module';
 import { ListsModule } from './lists/lists.module';
-import { ListsModule } from './lists/lists.module';
 
 @Module({
   imports: [

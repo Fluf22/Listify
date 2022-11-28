@@ -1,14 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Session } from 'express-session';
-import {
-  BaseClient,
-  generators,
-  Issuer,
-  TokenSet,
-  UserinfoResponse,
-} from 'openid-client';
-import { List } from '../lists/entities/list.entity';
+import { BaseClient, generators, Issuer, TokenSet } from 'openid-client';
 
 @Injectable()
 export class AuthService {
@@ -85,6 +78,7 @@ export class AuthService {
       this.logger.error(e);
       throw e;
     }
+
     return this.configService.get('APP_URL');
   }
 
@@ -102,9 +96,5 @@ export class AuthService {
         resolve(endSessionUrl);
       });
     });
-  }
-
-  async fetchWishLists(currentUserId: string): Promise<List[]> {
-    return [];
   }
 }

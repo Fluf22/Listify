@@ -7,6 +7,7 @@ Table List {
   userId String [unique, not null]
   firstName String
   lastName String
+  wishes Wish [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
@@ -14,16 +15,19 @@ Table List {
 
 Table Wish {
   id String [pk]
+  listId String [not null]
   title String [not null]
   description String
   image String
-  url String
+  link String
+  price Int
   addedBy String [not null]
   order Int [not null]
   giftedBy Gifter [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
+  list List [not null]
 }
 
 Table Gifter {
@@ -35,11 +39,17 @@ Table Gifter {
   updatedAt DateTime [not null]
   deletedAt DateTime
   wish Wish [not null]
+
+  indexes {
+    (wishId, gifterId) [unique]
+  }
 }
 
 Enum Role {
   ADMIN
   USER
 }
+
+Ref: Wish.listId > List.id
 
 Ref: Gifter.wishId > Wish.id

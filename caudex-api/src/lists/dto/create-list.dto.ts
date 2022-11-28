@@ -1,1 +1,5 @@
-export class CreateListDto {}
+export class CreateListDto {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+}

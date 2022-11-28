@@ -1,11 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `UserProfile` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropTable
-DROP TABLE "UserProfile";
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
 -- CreateTable
 CREATE TABLE "List" (
@@ -23,10 +17,12 @@ CREATE TABLE "List" (
 -- CreateTable
 CREATE TABLE "Wish" (
     "id" TEXT NOT NULL,
+    "listId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "image" TEXT,
-    "url" TEXT,
+    "link" TEXT,
+    "price" INTEGER,
     "addedBy" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,6 +47,12 @@ CREATE TABLE "Gifter" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "List_userId_key" ON "List"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Gifter_wishId_gifterId_key" ON "Gifter"("wishId", "gifterId");
+
+-- AddForeignKey
+ALTER TABLE "Wish" ADD CONSTRAINT "Wish_listId_fkey" FOREIGN KEY ("listId") REFERENCES "List"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Gifter" ADD CONSTRAINT "Gifter_wishId_fkey" FOREIGN KEY ("wishId") REFERENCES "Wish"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
