@@ -40,7 +40,7 @@ export class AuthService {
 
     return this.client.authorizationUrl({
       state,
-      scope: 'openid',
+      scope: 'openid offline_access',
       code_challenge,
       code_challenge_method: 'S256',
     });
@@ -73,7 +73,7 @@ export class AuthService {
       );
 
       (session as any).user = await this.client.userinfo(tokenSet.access_token);
-      (session as any).tokenSet = tokenSet;
+      (session as any).tokenSet = new TokenSet(tokenSet);
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -96,5 +96,9 @@ export class AuthService {
         resolve(endSessionUrl);
       });
     });
+  }
+
+  async refreshToken(tokenSet: TokenSet): Promise<TokenSet> {
+    return this.client.refresh(tokenSet);
   }
 }

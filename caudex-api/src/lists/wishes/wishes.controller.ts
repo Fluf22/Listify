@@ -26,13 +26,16 @@ import { UserinfoResponse } from 'openid-client';
 @ApiTags('wishes')
 @Controller({
   path: 'lists/:userId/wishes',
+  version: '1',
 })
 export class WishesController {
   private readonly logger: Logger = new Logger(WishesController.name);
 
   constructor(private readonly wishesService: WishesService) {}
 
+  @ApiCookieAuth()
   @Post()
+  @UseGuards(SessionGuard, RolesGuard)
   create(
     @Session() session,
     @Param('userId') userId: string,
@@ -47,12 +50,14 @@ export class WishesController {
 
   @ApiCookieAuth()
   @Get()
-  @UseGuards(new SessionGuard(), new RolesGuard(new Reflector()))
+  @UseGuards(SessionGuard, RolesGuard)
   findAll(@Session() session, @Param('userId') userId: string) {
     return this.wishesService.findAll(userId, (session as any).user);
   }
 
+  @ApiCookieAuth()
   @Put(':id')
+  @UseGuards(SessionGuard, RolesGuard)
   update(
     @Session() session,
     @Param('userId') userId: string,
@@ -67,7 +72,9 @@ export class WishesController {
     );
   }
 
+  @ApiCookieAuth()
   @Patch(':id')
+  @UseGuards(SessionGuard, RolesGuard)
   redeem(
     @Session() session,
     @Param('userId') userId: string,
@@ -85,7 +92,9 @@ export class WishesController {
     return this.wishesService.redeem(userId, wishId, redeemWishDto, loggedUser);
   }
 
+  @ApiCookieAuth()
   @Delete(':id')
+  @UseGuards(SessionGuard, RolesGuard)
   remove(
     @Session() session,
     @Param('userId') userId: string,

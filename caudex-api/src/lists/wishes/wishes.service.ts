@@ -15,6 +15,7 @@ import { ListsService } from '../lists.service';
 import WishInclude = Prisma.WishInclude;
 import { use } from 'passport';
 import { RedeemType, RedeemWishDto } from './dto/redeem-wish.dto';
+import SortOrder = Prisma.SortOrder;
 
 @Injectable()
 export class WishesService {
@@ -50,14 +51,18 @@ export class WishesService {
         userId: user?.sub,
       },
       include: {
-        wishes:
-          userId !== user?.sub
-            ? true
-            : {
+        wishes: {
+          orderBy: {
+            order: SortOrder.asc,
+          },
+          ...(userId === user?.sub
+            ? {
                 where: {
                   addedBy: user?.sub,
                 },
-              },
+              }
+            : {}),
+        },
       },
     });
     if (list == null) {

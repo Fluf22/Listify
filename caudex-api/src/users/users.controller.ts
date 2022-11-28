@@ -30,7 +30,7 @@ export class UsersController {
 
   @ApiBearerAuth()
   @Get('me')
-  @UseGuards(new SessionGuard(), new RolesGuard(new Reflector()))
+  @UseGuards(SessionGuard, RolesGuard)
   async me(@Session() session): Promise<UserPublic> {
     return session.user;
   }

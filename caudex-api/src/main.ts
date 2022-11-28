@@ -39,7 +39,7 @@ async function bootstrap() {
     .setTitle('Caudex API')
     .setDescription('Provide data to the Caudex PWA')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addCookieAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('openapi', app, document);
