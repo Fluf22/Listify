@@ -1,16 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Session,
-  UseGuards,
-  Put,
-  UnauthorizedException,
+  Get,
   Logger,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Session,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
@@ -19,7 +19,6 @@ import { RedeemWishDto } from './dto/redeem-wish.dto';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../auth/session.guard';
 import { RolesGuard } from '../../auth/roles.guard';
-import { Reflector } from '@nestjs/core';
 import { Wish } from '@prisma/client';
 import { UserinfoResponse } from 'openid-client';
 

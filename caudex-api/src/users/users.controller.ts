@@ -7,13 +7,14 @@ import {
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { Cache } from 'cache-manager';
 import { UsersService } from './users.service';
 import { UserPublic } from './models/user.model';
 import { SessionGuard } from '../auth/session.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Reflector } from '@nestjs/core';
+import { Wish } from '@prisma/client';
 
 @ApiTags('users')
 @Controller({
@@ -28,10 +29,17 @@ export class UsersController {
     private readonly usersService: UsersService,
   ) {}
 
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @Get('me')
   @UseGuards(SessionGuard, RolesGuard)
   async me(@Session() session): Promise<UserPublic> {
     return session.user;
+  }
+
+  @ApiCookieAuth()
+  @Get('me/cart')
+  @UseGuards(SessionGuard, RolesGuard)
+  async selfCart(@Session() session): Promise<Wish[]> {
+    return this.usersService.getCart((session as any).user);
   }
 }

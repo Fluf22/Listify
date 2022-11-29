@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { getRabbitMQConfig } from './microservices/rabbitmq.helper';
 import { PrismaService } from './prisma.service';
+import { WsAdapter } from '@nestjs/platform-ws';
 
 declare const module: any;
 
@@ -33,6 +34,7 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+  app.useWebSocketAdapter(new WsAdapter(app));
 
   // OpenAPI Swagger configuration
   const config = new DocumentBuilder()

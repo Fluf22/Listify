@@ -6,6 +6,7 @@ import { AUTH_SERVICE } from '../constants';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma.service';
+import { MessagesGateway } from './messages/messages.gateway';
 
 @Module({
   controllers: [ListsController],
@@ -20,6 +21,7 @@ import { PrismaService } from '../prisma.service';
     ConfigService,
     ListsService,
     PrismaService,
+    MessagesGateway,
   ],
   imports: [WishesModule],
 })
