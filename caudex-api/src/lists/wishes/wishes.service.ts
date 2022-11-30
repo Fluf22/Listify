@@ -2,20 +2,16 @@ import {
   BadRequestException,
   Injectable,
   Logger,
-  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { UserinfoResponse } from 'openid-client';
-import { Gifter, List, Prisma, Wish } from '@prisma/client';
-import { WishesController } from './wishes.controller';
+import { List, Prisma, Wish } from '@prisma/client';
 import { PrismaService } from '../../prisma.service';
 import { ListsService } from '../lists.service';
-import WishInclude = Prisma.WishInclude;
-import { use } from 'passport';
 import { RedeemType, RedeemWishDto } from './dto/redeem-wish.dto';
-import SortOrder = Prisma.SortOrder;
+import { CaudexError } from '../../interfaces';
 
 @Injectable()
 export class WishesService {
@@ -53,7 +49,7 @@ export class WishesService {
       include: {
         wishes: {
           orderBy: {
-            order: SortOrder.asc,
+            order: Prisma.SortOrder.asc,
           },
           ...(userId === user?.sub
             ? {

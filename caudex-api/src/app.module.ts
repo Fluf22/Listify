@@ -66,11 +66,11 @@ export class AppModule implements NestModule {
     private configService: ConfigService,
   ) {}
   configure(consumer: MiddlewareConsumer) {
-    const RedisClient = RedisStoreConnect(session);
+    const RedisClientStore = RedisStoreConnect(session);
     consumer
       .apply(
         session({
-          store: new RedisClient({ client: this.redis }),
+          store: new RedisClientStore({ client: this.redis }),
           secret: this.configService.get('SESSION_SECRET'),
           saveUninitialized: false,
           resave: false,

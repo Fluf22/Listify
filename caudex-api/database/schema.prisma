@@ -22,7 +22,9 @@ model List {
   firstName String?
   lastName  String?
 
-  wishes Wish[]
+  wishes           Wish[]
+  receivedMessages Message[] @relation("OnList_Message")
+  sentMessages     Message[] @relation("FromAuthor_Message")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -62,4 +64,18 @@ model Gifter {
   wish Wish @relation(fields: [wishId], references: [id])
 
   @@unique([wishId, gifterId])
+}
+
+model Message {
+  id           String @id @default(uuid())
+  listId       String
+  authorListId String
+  content      String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  list       List @relation(name: "OnList_Message", fields: [listId], references: [id])
+  authorList List @relation(name: "FromAuthor_Message", fields: [authorListId], references: [id])
 }

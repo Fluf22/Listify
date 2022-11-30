@@ -6,7 +6,8 @@ import { AUTH_SERVICE } from '../constants';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma.service';
-import { MessagesGateway } from './messages/messages.gateway';
+import { MessagesModule } from './messages/messages.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   controllers: [ListsController],
@@ -21,8 +22,7 @@ import { MessagesGateway } from './messages/messages.gateway';
     ConfigService,
     ListsService,
     PrismaService,
-    MessagesGateway,
   ],
-  imports: [WishesModule],
+  imports: [RedisModule, WishesModule, MessagesModule],
 })
 export class ListsModule {}
