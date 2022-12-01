@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { List, Message } from '@prisma/client';
 import { signedCookie } from 'cookie-parser';
 import { UserinfoResponse } from 'openid-client';
 import { CaudexError } from '../../interfaces';
@@ -8,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { REDIS } from '../../constants';
 import { RedisClient } from 'redis';
 import { Socket } from 'socket.io';
+import { MessageEntity } from './entities/message.entity';
+import { ListEntity } from '../entities/list.entity';
 
 @Injectable()
 export class MessagesService {
@@ -21,18 +22,20 @@ export class MessagesService {
 
   async fetchMessageForListWithUserId(
     userId: string,
-  ): Promise<Partial<Message & List>[]> {
+  ): Promise<MessageEntity[]> {
     return this.prisma.message.findMany({
       where: {
         deletedAt: null,
-        list: {
+        recipientList: {
           userId,
         },
       },
       select: {
         content: true,
+        createdAt: true,
         authorList: {
           select: {
+            userId: true,
             firstName: true,
             lastName: true,
           },
@@ -43,27 +46,29 @@ export class MessagesService {
 
   async createMessage(
     userId: string,
-    authorListId: string,
+    authorId: string,
     content: string,
-  ): Promise<Partial<Message & List>> {
+  ): Promise<MessageEntity> {
     return this.prisma.message.create({
       data: {
-        list: {
+        recipientList: {
           connect: {
             userId,
           },
         },
         authorList: {
           connect: {
-            id: authorListId,
+            userId: authorId,
           },
         },
         content,
       },
       select: {
+        createdAt: true,
         content: true,
         authorList: {
           select: {
+            userId: true,
             firstName: true,
             lastName: true,
           },
@@ -72,7 +77,9 @@ export class MessagesService {
     });
   }
 
-  async extractUserFromWebSocket(client: Socket): Promise<List | undefined> {
+  async extractUserFromWebSocket(
+    client: Socket,
+  ): Promise<ListEntity | undefined> {
     const sessionCookie: string = client.handshake.headers?.cookie
       ?.split(';')
       .find((c) => c.startsWith('connect.sid'))
@@ -101,13 +108,18 @@ export class MessagesService {
             const session: any = JSON.parse(sessionStr);
             const user: UserinfoResponse = (session as any).user;
             this.prisma.list
-              .findFirst({
+              .findUnique({
                 where: {
                   deletedAt: null,
                   userId: user?.sub,
                 },
+                select: {
+                  userId: true,
+                  firstName: true,
+                  lastName: true,
+                },
               })
-              .then((list) => {
+              .then((list: ListEntity | null) => {
                 resolve(list);
               })
               .catch((err) => {

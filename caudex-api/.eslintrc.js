@@ -22,6 +22,6 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'prisma-soft-delete-alt/use-deleted-null': 'error',
-    'prisma-soft-delete-alt/use-find-first': 'error',
+    'prisma-soft-delete-alt/use-find-first': 'off',
   },
 };

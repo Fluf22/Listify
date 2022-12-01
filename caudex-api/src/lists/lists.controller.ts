@@ -1,10 +1,9 @@
 import { Controller, Get, Logger, Session, UseGuards } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { ListsService } from './lists.service';
 import { SessionGuard } from '../auth/session.guard';
 import { RolesGuard } from '../auth/roles.guard';
-import { List } from '@prisma/client';
+import { ListEntity } from './entities/list.entity';
 
 @ApiTags('lists')
 @Controller({
@@ -19,7 +18,7 @@ export class ListsController {
   @ApiCookieAuth()
   @Get()
   @UseGuards(SessionGuard, RolesGuard)
-  findAll(@Session() session): Promise<List[]> {
+  findAll(@Session() session): Promise<ListEntity[]> {
     return this.listsService.findAll((session as any).user);
   }
 }

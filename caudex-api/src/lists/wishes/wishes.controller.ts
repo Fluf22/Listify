@@ -19,8 +19,8 @@ import { RedeemWishDto } from './dto/redeem-wish.dto';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../auth/session.guard';
 import { RolesGuard } from '../../auth/roles.guard';
-import { Wish } from '@prisma/client';
 import { UserinfoResponse } from 'openid-client';
+import { WishEntity } from './entities/wish.entity';
 
 @ApiTags('wishes')
 @Controller({
@@ -39,7 +39,7 @@ export class WishesController {
     @Session() session,
     @Param('userId') userId: string,
     @Body() createWishDto: CreateWishDto,
-  ) {
+  ): Promise<WishEntity> {
     return this.wishesService.create(
       userId,
       (session as any).user,
@@ -50,7 +50,10 @@ export class WishesController {
   @ApiCookieAuth()
   @Get()
   @UseGuards(SessionGuard, RolesGuard)
-  findAll(@Session() session, @Param('userId') userId: string) {
+  findAll(
+    @Session() session,
+    @Param('userId') userId: string,
+  ): Promise<WishEntity[]> {
     return this.wishesService.findAll(userId, (session as any).user);
   }
 
@@ -62,7 +65,7 @@ export class WishesController {
     @Param('userId') userId: string,
     @Param('id') wishId: string,
     @Body() updateWishDto: UpdateWishDto,
-  ) {
+  ): Promise<WishEntity> {
     return this.wishesService.update(
       userId,
       wishId,
@@ -79,7 +82,7 @@ export class WishesController {
     @Param('userId') userId: string,
     @Param('id') wishId: string,
     @Body() redeemWishDto: RedeemWishDto,
-  ): Promise<Wish> {
+  ): Promise<WishEntity> {
     const loggedUser: UserinfoResponse = (session as any).user;
     if (userId === loggedUser.sub) {
       this.logger.error(
@@ -98,7 +101,7 @@ export class WishesController {
     @Session() session,
     @Param('userId') userId: string,
     @Param('id') wishId: string,
-  ): Promise<Wish> {
+  ): Promise<WishEntity> {
     return this.wishesService.remove(userId, wishId, (session as any).user);
   }
 }

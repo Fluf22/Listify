@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -7,11 +8,13 @@ import {
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { UserinfoResponse } from 'openid-client';
-import { List, Prisma, Wish } from '@prisma/client';
+import { Prisma, Wish } from '@prisma/client';
 import { PrismaService } from '../../prisma.service';
 import { ListsService } from '../lists.service';
 import { RedeemType, RedeemWishDto } from './dto/redeem-wish.dto';
 import { CaudexError } from '../../interfaces';
+import { WishEntity } from './entities/wish.entity';
+import { ListEntity } from '../entities/list.entity';
 
 @Injectable()
 export class WishesService {
@@ -26,41 +29,93 @@ export class WishesService {
     userId: string,
     user: UserinfoResponse,
     createWishDto: CreateWishDto,
-  ): Promise<Wish> {
+  ): Promise<WishEntity> {
     return this.prisma.wish.create({
       data: {
-        list: {
+        recipientList: {
           connect: {
             userId,
           },
         },
-        addedBy: user.sub,
+        addedByList: {
+          connect: {
+            userId: user.sub,
+          },
+        },
         ...createWishDto,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async findAll(userId: string, user: UserinfoResponse): Promise<Wish[]> {
-    const list: List & { wishes: Wish[] } = await this.prisma.list.findFirst({
-      where: {
-        deletedAt: null,
-        userId: user?.sub,
-      },
-      include: {
-        wishes: {
-          orderBy: {
-            order: Prisma.SortOrder.asc,
-          },
-          ...(userId === user?.sub
-            ? {
-                where: {
-                  addedBy: user?.sub,
-                },
-              }
-            : {}),
+  async findAll(userId: string, user: UserinfoResponse): Promise<WishEntity[]> {
+    const list: ListEntity & { wishes: WishEntity[] } =
+      await this.prisma.list.findUnique({
+        where: {
+          deletedAt: null,
+          userId: user?.sub,
         },
-      },
-    });
+        select: {
+          userId: true,
+          firstName: true,
+          lastName: true,
+          wishes: {
+            orderBy: {
+              order: Prisma.SortOrder.asc,
+            },
+            ...(userId === user?.sub
+              ? {
+                  where: {
+                    addedBy: user?.sub,
+                  },
+                }
+              : {}),
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              image: true,
+              link: true,
+              price: true,
+              order: true,
+              createdAt: true,
+              giftedBy: {
+                select: {
+                  amount: true,
+                  gifterList: {
+                    select: {
+                      userId: true,
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
     if (list == null) {
       await this.listsService.create({
         userId: user?.sub,
@@ -78,10 +133,11 @@ export class WishesService {
     wishId: string,
     updateWishDto: UpdateWishDto,
     user: UserinfoResponse,
-  ): Promise<Wish> {
-    const wish: Wish = await this.prisma.wish.findFirst({
+  ): Promise<WishEntity> {
+    const wish: Wish = await this.prisma.wish.findUnique({
       where: {
-        list: {
+        id: wishId,
+        recipientList: {
           userId,
         },
         addedBy: user.sub,
@@ -100,6 +156,28 @@ export class WishesService {
       where: {
         id: wishId,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -108,10 +186,11 @@ export class WishesService {
     wishId: string,
     redeemWishDto: RedeemWishDto,
     user: UserinfoResponse,
-  ): Promise<Wish> {
-    const wish = await this.prisma.wish.findFirst({
+  ): Promise<WishEntity> {
+    const wish = await this.prisma.wish.findUnique({
       where: {
-        list: {
+        id: wishId,
+        recipientList: {
           userId,
         },
         addedBy: {
@@ -119,8 +198,27 @@ export class WishesService {
         },
         deletedAt: null,
       },
-      include: {
-        giftedBy: true,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -128,7 +226,7 @@ export class WishesService {
       this.logger.error(
         `User '${user?.sub}' doesn't have the rights to delete wish '${wishId}' in list of user '${userId}'`,
       );
-      throw new UnauthorizedException();
+      throw new ForbiddenException();
     }
 
     const totalGiftedAmount: number = wish.giftedBy.reduce(
@@ -136,7 +234,7 @@ export class WishesService {
       0,
     );
     const personalGiftedAmount: number =
-      wish.giftedBy.find((giftedBy) => giftedBy.gifterId === user.sub)
+      wish.giftedBy.find((giftedBy) => giftedBy.gifterList.userId === user.sub)
         ?.amount ?? 0;
     if (
       redeemWishDto.type === RedeemType.REDEEM &&
@@ -175,6 +273,9 @@ export class WishesService {
     }
 
     return this.prisma.wish.update({
+      where: {
+        id: wishId,
+      },
       data: {
         giftedBy: {
           upsert: {
@@ -186,7 +287,11 @@ export class WishesService {
             },
             create: {
               amount: redeemWishDto.amount,
-              gifterId: user.sub,
+              gifterList: {
+                connect: {
+                  userId: user.sub,
+                },
+              },
             },
             update: {
               amount:
@@ -201,8 +306,27 @@ export class WishesService {
           },
         },
       },
-      where: {
-        id: wishId,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -211,14 +335,37 @@ export class WishesService {
     userId: string,
     wishId: string,
     user: UserinfoResponse,
-  ): Promise<Wish> {
-    const wish: Wish = await this.prisma.wish.findFirst({
+  ): Promise<WishEntity & { deletedAt: Date }> {
+    const wish: WishEntity = await this.prisma.wish.findUnique({
       where: {
-        list: {
+        id: wishId,
+        recipientList: {
           userId,
         },
         addedBy: user.sub,
         deletedAt: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
     if (wish == null) {
@@ -234,6 +381,29 @@ export class WishesService {
       },
       where: {
         id: wishId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        link: true,
+        price: true,
+        order: true,
+        createdAt: true,
+        deletedAt: true,
+        giftedBy: {
+          select: {
+            amount: true,
+            gifterList: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
   }

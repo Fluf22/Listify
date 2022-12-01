@@ -1,5 +1,3 @@
-import { List } from '@prisma/client';
-
 export class CaudexError {
   code: string;
   name: string;
@@ -11,9 +9,3 @@ export class CaudexError {
     this.details = details;
   }
 }
-
-export type ReceivedMessage = {
-  userId: string;
-  authorList: List;
-  content: string;
-};

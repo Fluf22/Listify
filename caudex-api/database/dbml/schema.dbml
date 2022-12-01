@@ -8,8 +8,10 @@ Table List {
   firstName String
   lastName String
   wishes Wish [not null]
+  ideasForOthers Wish [not null]
   receivedMessages Message [not null]
   sentMessages Message [not null]
+  gifts Gifter [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
@@ -17,7 +19,7 @@ Table List {
 
 Table Wish {
   id String [pk]
-  listId String [not null]
+  recipientId String [not null]
   title String [not null]
   description String
   image String
@@ -29,7 +31,8 @@ Table Wish {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
-  list List [not null]
+  recipientList List [not null]
+  addedByList List [not null]
 }
 
 Table Gifter {
@@ -41,6 +44,7 @@ Table Gifter {
   updatedAt DateTime [not null]
   deletedAt DateTime
   wish Wish [not null]
+  gifterList List [not null]
 
   indexes {
     (wishId, gifterId) [unique]
@@ -49,13 +53,13 @@ Table Gifter {
 
 Table Message {
   id String [pk]
-  listId String [not null]
-  authorListId String [not null]
+  recipientId String [not null]
+  authorId String [not null]
   content String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
-  list List [not null]
+  recipientList List [not null]
   authorList List [not null]
 }
 
@@ -64,10 +68,14 @@ Enum Role {
   USER
 }
 
-Ref: Wish.listId > List.id
+Ref: Wish.recipientId > List.userId
+
+Ref: Wish.addedBy > List.userId
 
 Ref: Gifter.wishId > Wish.id
 
-Ref: Message.listId > List.id
+Ref: Gifter.gifterId > List.userId
 
-Ref: Message.authorListId > List.id
+Ref: Message.recipientId > List.userId
+
+Ref: Message.authorId > List.userId

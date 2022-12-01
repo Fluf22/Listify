@@ -15,6 +15,7 @@ import { SessionGuard } from '../auth/session.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { Wish } from '@prisma/client';
+import { WishEntity } from '../lists/wishes/entities/wish.entity';
 
 @ApiTags('users')
 @Controller({
@@ -39,7 +40,7 @@ export class UsersController {
   @ApiCookieAuth()
   @Get('me/cart')
   @UseGuards(SessionGuard, RolesGuard)
-  async selfCart(@Session() session): Promise<Wish[]> {
+  async selfCart(@Session() session): Promise<WishEntity[]> {
     return this.usersService.getCart((session as any).user);
   }
 }

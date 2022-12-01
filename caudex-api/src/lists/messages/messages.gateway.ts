@@ -9,9 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { Logger, UseGuards } from '@nestjs/common';
 import { WsSessionGuard } from '../../auth/ws-session.guard';
-import { CaudexError, ReceivedMessage } from '../../interfaces';
+import { CaudexError } from '../../interfaces';
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 @WebSocketGateway({
   cors: { credentials: true, origin: '*' },
@@ -55,9 +56,7 @@ export class MessagesGateway
 
   @UseGuards(WsSessionGuard)
   @SubscribeMessage('message')
-  async handleMessage(
-    @MessageBody() message: Partial<ReceivedMessage>,
-  ): Promise<void> {
+  async handleMessage(@MessageBody() message: CreateMessageDto): Promise<void> {
     const { userId, content, authorList } = message ?? {};
     if (userId == null || content == null || authorList == null) {
       const msgError = new CaudexError('ws_bad_format', 'Bad message format');
@@ -67,7 +66,7 @@ export class MessagesGateway
 
     const messageToBroadcast = await this.messagesService.createMessage(
       userId,
-      authorList.id,
+      authorList.userId,
       content,
     );
     this.server.emit('message', messageToBroadcast);

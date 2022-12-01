@@ -3,15 +3,13 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotImplementedException,
 } from '@nestjs/common';
-import { List } from '@prisma/client';
 import { UserinfoResponse } from 'openid-client';
 import { CreateListDto } from './dto/create-list.dto';
-import { UpdateListDto } from './dto/update-list.dto';
 import { AUTH_SERVICE } from '../constants';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma.service';
+import { ListEntity } from './entities/list.entity';
 
 @Injectable()
 export class ListsService {
@@ -22,11 +20,16 @@ export class ListsService {
     private prisma: PrismaService,
   ) {}
 
-  async create(createListDto: CreateListDto): Promise<List> {
+  async create(createListDto: CreateListDto): Promise<ListEntity> {
     try {
       return await this.prisma.list.create({
         data: {
           ...createListDto,
+        },
+        select: {
+          userId: true,
+          firstName: true,
+          lastName: true,
         },
       });
     } catch (e) {
@@ -38,9 +41,10 @@ export class ListsService {
     }
   }
 
-  async findAll(user: UserinfoResponse): Promise<List[]> {
+  async findAll(user: UserinfoResponse): Promise<ListEntity[]> {
     return this.prisma.list.findMany({
       where: { deletedAt: null, NOT: { userId: user.sub } },
+      select: { userId: true, firstName: true, lastName: true },
     });
   }
 }
