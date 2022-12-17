@@ -8,7 +8,7 @@ const useStyles = makeStyles((theme) => createStyles({
 		height: "calc(100% - 64px)"
 	},
 	cardGridItem: {
-		height: "300px",
+		minHeight: "300px",
 		flexGrow: 1
 	},
 	cardRoot: {

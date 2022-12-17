@@ -11,7 +11,7 @@ const handler = async (event, context, userMail) => {
 	console.log("Function `read-all` invoked");
 
 	return client
-		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes'))))
+		.query(query.Paginate(query.Match(query.Ref('indexes/all_wishes')), { size: 1000 }))
 		.then((response) => {
 			const itemRefs = response.data
 			// create new query out of item refs. http://bit.ly/2LG3MLg
