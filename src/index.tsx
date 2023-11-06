@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
-import { CssBaseline, ThemeProvider, Theme, createMuiTheme, IconButton } from '@material-ui/core';
+import {CssBaseline, ThemeProvider, Theme, IconButton, createTheme} from '@material-ui/core';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import netlifyIdentity from 'netlify-identity-widget';
 import Home from './components/Home';
@@ -15,7 +15,7 @@ import CloseIcon from '@material-ui/icons/Close';
 global.installAppEvent = undefined;
 netlifyIdentity.init({ locale: "fr" });
 
-const theme: Theme = createMuiTheme({
+const theme: Theme = createTheme({
 	palette: {
 		primary: {
 			main: "#e8272c",

@@ -28,7 +28,7 @@ const Home = (props: RouteComponentProps<HomeRouteProps>) => {
 				<Grid item container direction="row" className={classes.slug}>
 					<ErrorBoundary>
 						<Suspense fallback={
-							<Grid container justify="center" alignItems="center" className={classes.fallback}>
+							<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
 								<CircularProgress color="secondary" />
 							</Grid>
 						}>

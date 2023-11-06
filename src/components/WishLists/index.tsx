@@ -38,18 +38,18 @@ const WishLists = () => {
 	};
 
 	return (
-		<Grid item container direction="column" justify="space-between" className={classes.description}>
+		<Grid item container direction="column" justifyContent="space-between" className={classes.description}>
 			<Helmet>
 				<title>{openedList === undefined ? "Toutes les listes" : `Liste de ${openedList.name}`} - Caudex</title>
 				<meta name="description" content="Toutes les listes - Caudex" />
 			</Helmet>
 			{
 				isLoading ? (
-					<Grid container justify="center" alignItems="center" className={classes.fallback}>
+					<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
 						<CircularProgress color="secondary" />
 					</Grid>
 				) : isError ? (
-					<Grid container direction="column" justify="center" alignItems="center" style={{ height: "calc(100% - 64px)" }}>
+					<Grid container direction="column" justifyContent="center" alignItems="center" style={{ height: "calc(100% - 64px)" }}>
 						<WarningIcon style={{ fontSize: "80px" }} />
 						<Typography style={{ fontSize: "40px" }}>An error as occured</Typography>
 						<Typography style={{ fontSize: "40px" }}>Please reload the page</Typography>
@@ -58,7 +58,7 @@ const WishLists = () => {
 							<Grid item container direction="row" wrap="wrap">
 								{
 									users?.map((user: IUser, idx: number) => (
-										<Grid key={btoa(`${(new Date()).valueOf()}${idx.toString()}`)} item container justify="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }}>
+										<Grid key={btoa(`${(new Date()).valueOf()}${idx.toString()}`)} item container justifyContent="center" xs={12} sm={6} lg={4} xl={2} style={{ marginBottom: "22px" }}>
 											<Card key={idx} className={classes.cardRoot} color="primary">
 												<CardContent>
 													<Typography variant="h5" component="h2" color="primary">
@@ -100,7 +100,7 @@ const WishLists = () => {
 						openedList?.email !== undefined ? (
 							<UserWishes user={openedList?.email} />
 						) : (
-								<Grid container justify="center" alignItems="center" className={classes.fallback}>
+								<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
 									<CircularProgress color="secondary" />
 								</Grid>
 							)

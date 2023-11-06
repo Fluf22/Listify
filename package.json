@@ -16,7 +16,7 @@
 		"react-helmet": "^6.1.0",
 		"react-query": "^3.2.0",
 		"react-router-dom": "^5.2.0",
-		"react-scripts": "4.0.0",
+		"react-scripts": "^5.0.1",
 		"web-vitals": "^0.2.4",
 		"workbox-background-sync": "^5.1.4",
 		"workbox-broadcast-update": "^5.1.4",
@@ -56,6 +56,7 @@
 		]
 	},
 	"devDependencies": {
+		"@babel/plugin-proposal-private-property-in-object": "^7.21.11",
 		"@types/netlify-identity-widget": "^1.9.1",
 		"@types/node": "^12.19.3",
 		"@types/react": "^16.9.55",

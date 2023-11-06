@@ -9,9 +9,9 @@ const NotFound = (props: RouteComponentProps) => {
 	const classes = useStyles();
 
 	return (
-		<Grid className={classes.root} container direction="column" justify="center" alignItems="center">
+		<Grid className={classes.root} container direction="column" justifyContent="center" alignItems="center">
 			<Typography variant="h1" className={classes.mainText}>404</Typography>
-			<Grid container item justify="center">
+			<Grid container item justifyContent="center">
 				<Button
 					variant="contained"
 					className={classes.button}

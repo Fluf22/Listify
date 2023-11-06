@@ -87,7 +87,7 @@ const Header = (props: HeaderProps) => {
 		<Grid container className={classes.root}>
 			<AppBar position="sticky" color="primary">
 				<Toolbar className={classes.toolBar}>
-					<Grid container direction="row" justify="space-between" alignItems="center" >
+					<Grid container direction="row" justifyContent="space-between" alignItems="center" >
 						<Grid item container direction="row" alignItems="center" xs>
 							<img src="/logo192.png" height="64" alt="Lord of the rings related app logo" />
 							<Typography variant="h3" className={classes.title}>Caudex</Typography>
@@ -107,7 +107,7 @@ const Header = (props: HeaderProps) => {
 								</Tabs>
 							)
 						}
-						<Grid item container justify="flex-end" xs className={classes.installButtonContainer}>
+						<Grid item container justifyContent="flex-end" xs className={classes.installButtonContainer}>
 							{
 								showInstallButton ? (
 									<Button color="secondary" onClick={() => handleInstall()} variant="outlined" className={classes.installButton}>

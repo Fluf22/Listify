@@ -11,7 +11,7 @@ const MyWishes = () => {
 	const netlifyUser = netlifyIdentity.currentUser();
 
 	return (
-		<Grid item container direction="column" justify="space-between" className={classes.description}>
+		<Grid item container direction="column" justifyContent="space-between" className={classes.description}>
 			<Helmet>
 				<title>Ma liste - Caudex</title>
 				<meta name="description" content="My wishes - Caudex" />
@@ -20,7 +20,7 @@ const MyWishes = () => {
 				netlifyUser ? (
 					<UserWishes user={netlifyUser.email} />
 				) : (
-					<Grid container justify="center" alignItems="center" className={classes.fallback}>
+					<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
 						<CircularProgress color="secondary" />
 					</Grid>
 				)

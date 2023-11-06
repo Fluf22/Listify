@@ -21,12 +21,12 @@ const Login = () => {
 	if (user === null) {
 		login(handleLogin);
 		return (
-			<Grid item container direction="column" className={classes.description} justify="space-around">
+			<Grid item container direction="column" className={classes.description} justifyContent="space-around">
 				<Helmet>
 					<title>Home - Caudex</title>
 					<meta name="description" content="Homepage of Caudex" />
 				</Helmet>
-				<Grid item container direction="column" justify="space-evenly" className={classes.paragraph}>
+				<Grid item container direction="column" justifyContent="space-evenly" className={classes.paragraph}>
 					<Grid item>
 						<Typography variant="h4">
 							Connexion nécessaire
