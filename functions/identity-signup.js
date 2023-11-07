@@ -4,12 +4,7 @@ const handler = async (event, context) => {
 	const reqBody = JSON.parse(event.body);
 	console.log("Req body: ", reqBody);
 	if (reqBody.event === "signup") {
-		const authorizedEmails = [];
-		try {
-			authorizedEmails.push(...JSON.parse(process.env.AUTHORIZED_EMAILS));
-		} catch (e) {
-			console.error("failed to parse authorized emails: ", e);
-		}
+		const authorizedEmails = process.env.AUTHORIZED_EMAILS.split(',');
 		console.log("authorized emails: ", authorizedEmails)
 		if (authorizedEmails.includes(reqBody.user.email) === false) {
 			return {
