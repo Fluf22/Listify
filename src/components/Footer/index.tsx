@@ -3,7 +3,6 @@ import { BottomNavigation, BottomNavigationAction } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import GroupIcon from '@material-ui/icons/Group';
-import EventIcon from '@material-ui/icons/Event';
 
 interface IFooter {
 	page: string;
