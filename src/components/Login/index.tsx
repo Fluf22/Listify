@@ -1,7 +1,7 @@
 import React from 'react';
-import {useHistory, useLocation, Redirect} from 'react-router-dom';
+import { useHistory, useLocation, Redirect } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import {Button, Grid, Typography} from '@material-ui/core';
+import { Grid, Typography } from '@material-ui/core';
 import { useAuth } from '../../hooks/auth';
 import useStyles from './styles';
 
@@ -9,16 +9,17 @@ const Login = () => {
 	const classes = useStyles();
 	const history = useHistory();
 	const location = useLocation();
-	const { user, open } = useAuth();
+	const { user, login } = useAuth();
 
 	const { from }: any = location.state || { from: { pathname: "/" } };
 
-	const handleOpen = (user: any) => {
+	const handleLogin = (user: any) => {
 		console.log("Logged in user: ", user);
 		history.replace(from);
 	};
 
 	if (user === null) {
+		login(handleLogin);
 		return (
 			<Grid item container direction="column" className={classes.description} justifyContent="space-around">
 				<Helmet>
@@ -36,17 +37,13 @@ const Login = () => {
 							Vous devez vous connecter pour accéder au site
 						</Typography>
 					</Grid>
-					<Grid item>
-						<Button onClick={() => open("signup", handleOpen)} className={classes.signupLink}>S'inscrire</Button>
-						<Button onClick={() => open("login", handleOpen)} className={classes.signupLink}>Se connecter</Button>
-					</Grid>
 				</Grid>
 			</Grid>
-		);
+			);
 	} else {
 		return (
 			<Redirect to={from} />
-		);
+			);
 	}
 };
 
