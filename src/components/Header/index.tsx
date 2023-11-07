@@ -23,9 +23,6 @@ const pages: PageType[] = [
 	}, {
 		id: "lists",
 		name: "Toutes les listes"
-	}, {
-		id: "calendar",
-		name: "Calendrier"
 	}
 ];
 

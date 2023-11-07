@@ -24,10 +24,6 @@ const pages: PageType[] = [
 		id: "lists",
 		icon: <GroupIcon />,
 		name: "Toutes les listes"
-	}, {
-		id: "calendar",
-		icon: <EventIcon />,
-		name: "Calendrier"
 	}
 ];
 
