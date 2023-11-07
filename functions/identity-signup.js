@@ -5,8 +5,7 @@ const handler = async (event, context) => {
 	console.log("Req body: ", reqBody);
 	if (reqBody.event === "signup") {
 		const authorizedEmails = process.env.AUTHORIZED_EMAILS.split(',');
-		console.log("authorized emails: ", authorizedEmails)
-		if (authorizedEmails.includes(reqBody.user.email) === false) {
+		if (authorizedEmails.includes(reqBody.user.email.toLocaleLowerCase().trim()) === false) {
 			return {
 				statusCode: 401,
 				body: JSON.stringify({
@@ -17,8 +16,8 @@ const handler = async (event, context) => {
 
 		const userEvent = {
 			body: JSON.stringify({
-				email: reqBody.user.email,
-				name: reqBody.user.user_metadata?.full_name ?? reqBody.user.email
+				email: reqBody.user.email.toLocaleLowerCase().trim(),
+				name: reqBody.user.user_metadata?.full_name.trim() ?? reqBody.user.email.toLocaleLowerCase().trim()
 			})
 		};
 		await createUserRoute.handler(userEvent);
