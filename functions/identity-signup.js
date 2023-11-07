@@ -4,10 +4,25 @@ const handler = async (event, context) => {
 	const reqBody = JSON.parse(event.body);
 	console.log("Req body: ", reqBody);
 	if (reqBody.event === "signup") {
+		const authorizedEmails = [];
+		try {
+			authorizedEmails.push(...JSON.parse(process.env.AUTHORIZED_EMAILS));
+		} catch (e) {
+			console.error("failed to parse authorized emails: ", e);
+		}
+		if (authorizedEmails.includes(reqBody.user.email) === false) {
+			return {
+				statusCode: 401,
+				body: JSON.stringify({
+					message: "Unauthorized"
+				})
+			}
+		}
+
 		const userEvent = {
 			body: JSON.stringify({
 				email: reqBody.user.email,
-				name: reqBody.user.user_metadata.full_name
+				name: reqBody.user.user_metadata?.full_name ?? reqBody.user.email
 			})
 		};
 		await createUserRoute.handler(userEvent);

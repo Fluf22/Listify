@@ -12,7 +12,15 @@ const useStyles = makeStyles((theme) => createStyles({
 	},
 	paragraphText: {
 		paddingLeft: theme.spacing(3),
-		marginTop: "30px"
+		marginTop: "30px",
+		marginBottom: "30px",
+	},
+	signupLink: {
+		padding: "7px",
+		border: "2px solid white",
+		borderRadius: "7px",
+		marginLeft: "13px",
+		color: "white"
 	}
 }));
 
