@@ -10,6 +10,7 @@ const handler = async (event, context) => {
         } catch (e) {
             console.error("failed to parse authorized emails: ", e);
         }
+        console.log("authorized emails: ", authorizedEmails)
         if (authorizedEmails.includes(reqBody.user.email) === false) {
             return {
                 statusCode: 401,
