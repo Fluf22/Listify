@@ -15,6 +15,7 @@ import * as Sentry from "@sentry/react";
 
 global.installAppEvent = undefined;
 netlifyIdentity.init({ locale: "fr" });
+netlifyIdentity.refresh().catch(() => netlifyIdentity.logout())
 
 const theme: Theme = createTheme({
 	palette: {
