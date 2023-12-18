@@ -10,6 +10,7 @@ import './styles.css';
 import ProvideAuth from './components/Auth/provide-auth';
 import { SnackbarProvider } from 'notistack';
 import CloseIcon from '@material-ui/icons/Close';
+import * as Sentry from "@sentry/react";
 // import reportWebVitals from './reportWebVitals';
 
 global.installAppEvent = undefined;
@@ -34,6 +35,11 @@ const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: string | number) => () => {
 	notistackRef.current?.closeSnackbar(key);
 }
+
+Sentry.init({
+	dsn: "https://626b446107019b58cce6cdafcb7173c4@o4506415710928896.ingest.sentry.io/4506415714861056",
+	integrations: [],
+});
 
 ReactDOM.render(
 	<React.Fragment>

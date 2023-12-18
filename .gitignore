@@ -27,3 +27,9 @@ yarn-error.log*
 # Local Netlify folder
 .netlify
 functions/*/node_modules
+
+# JetBrains IDEs
+.idea
+
+# Sentry Config File
+.sentryclirc
