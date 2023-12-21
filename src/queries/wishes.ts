@@ -11,13 +11,17 @@ const axiosCfg: AxiosRequestConfig = {
 	}
 };
 
-export const useGetAllWishes = (wishesUserMail: string) => useQuery(["wishes", wishesUserMail], () => axios.request({
-	method: "GET",
-	url: `/wishes/${wishesUserMail}`,
-	...axiosCfg
-}).then((res) => res.data).catch(err => {
-	console.log("Err retrieving wishes: ", err);
-}).finally(() => netlifyIdentity.refresh().catch(() => netlifyIdentity.logout())), { refetchOnWindowFocus: false });
+export const useGetAllWishes = (wishesUserMail: string) => {
+	console.log("useGetAllWishes: ", wishesUserMail)
+
+	return useQuery(["wishes", wishesUserMail], () => axios.request({
+		method: "GET",
+		url: `/wishes/${wishesUserMail}`,
+		...axiosCfg
+	}).then((res) => res.data).catch(err => {
+		console.log("Err retrieving wishes: ", err);
+	}).finally(() => netlifyIdentity.refresh().catch(() => netlifyIdentity.logout())))
+};
 
 export const usePostWish = () => {
 	const queryClient = useQueryClient();

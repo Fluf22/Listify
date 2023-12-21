@@ -44,10 +44,7 @@ const Header = (props: HeaderProps) => {
 
 	const handleLogout = () => {
 		handleCloseMenu();
-		logout(() => {
-			console.log("Logged out");
-			history.push("/");
-		});
+		logout();
 	};
 
 	const handleOpenMenu = (event: any) => {

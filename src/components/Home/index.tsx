@@ -6,6 +6,7 @@ import ErrorBoundary from './error-boundary';
 import ServiceWorkerWrapper from '../ServiceWorkerWrapper';
 import useStyles from './styles';
 import Footer from '../Footer';
+import ProvideAuth from "../Auth/provide-auth";
 
 const NotFound = React.lazy(() => import('../NotFound'));
 const Login = React.lazy(() => import('../Login'));
@@ -22,37 +23,39 @@ const Home = (props: RouteComponentProps<HomeRouteProps>) => {
 	const classes = useStyles(isMobile);
 
 	return (
-		<Grid container direction="column" className={classes.root}>
-			<Header page={props.match.params.slug || ""} />
-			<Grid item container direction="column" className={classes.body}>
-				<Grid item container direction="row" className={classes.slug}>
-					<ErrorBoundary>
-						<Suspense fallback={
-							<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
-								<CircularProgress color="secondary" />
-							</Grid>
-						}>
-							<Switch>
-								<PrivateRoute path="/lists/:wishesUserMail?">
-									<WishLists />
-								</PrivateRoute>
-								<PrivateRoute exact path="/">
-									<MyWishes />
-								</PrivateRoute>
-								<Route exact path="/login" component={Login} />
-								<Route path="*" component={NotFound} />
-							</Switch>
-						</Suspense>
-					</ErrorBoundary>
+		<ProvideAuth>
+			<Grid container direction="column" className={classes.root}>
+				<Header page={props.match.params.slug || ""} />
+				<Grid item container direction="column" className={classes.body}>
+					<Grid item container direction="row" className={classes.slug}>
+						<ErrorBoundary>
+							<Suspense fallback={
+								<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>
+									<CircularProgress color="secondary" />
+								</Grid>
+							}>
+								<Switch>
+									<PrivateRoute path="/lists/:wishesUserMail?">
+										<WishLists />
+									</PrivateRoute>
+									<PrivateRoute exact path="/">
+										<MyWishes />
+									</PrivateRoute>
+									<Route exact path="/login" component={Login} />
+									<Route path="*" component={NotFound} />
+								</Switch>
+							</Suspense>
+						</ErrorBoundary>
+					</Grid>
 				</Grid>
+				{
+					isMobile ? (
+						<Footer page={props.match.params.slug || ""} />
+					) : ("")
+				}
+				<ServiceWorkerWrapper />
 			</Grid>
-			{
-				isMobile ? (
-					<Footer page={props.match.params.slug || ""} />
-				) : ("")
-			}
-			<ServiceWorkerWrapper />
-		</Grid>
+		</ProvideAuth>
 	);
 };
 

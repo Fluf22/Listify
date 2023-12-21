@@ -3,12 +3,12 @@ import { Grid, CircularProgress, useMediaQuery } from '@material-ui/core';
 import { Helmet } from 'react-helmet';
 import useStyles from './styles';
 import UserWishes from '../UserWishes';
-import { useNetlifyUser } from '../../hooks/netlifyUser';
+import { useAuth } from '../../hooks/auth';
 
 const MyWishes = () => {
 	const isMobile = useMediaQuery('(max-width:555px)');
 	const classes = useStyles(isMobile);
-	const { user, loading, error } = useNetlifyUser();
+	const { user } = useAuth();
 
 	return (
 		<Grid item container direction="column" justifyContent="space-between" className={classes.description}>
@@ -17,7 +17,7 @@ const MyWishes = () => {
 				<meta name="description" content="My wishes - Caudex" />
 			</Helmet>
 			{
-				!loading && !error && user != null ? (
+				user != null ? (
 					<UserWishes user={user.email} />
 				) : (
 					<Grid container justifyContent="center" alignItems="center" className={classes.fallback}>

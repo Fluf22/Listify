@@ -7,7 +7,6 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 import netlifyIdentity from 'netlify-identity-widget';
 import Home from './components/Home';
 import './styles.css';
-import ProvideAuth from './components/Auth/provide-auth';
 import { SnackbarProvider } from 'notistack';
 import CloseIcon from '@material-ui/icons/Close';
 import * as Sentry from "@sentry/react";
@@ -59,11 +58,9 @@ ReactDOM.render(
 						</IconButton>
 					)}
 				>
-					<ProvideAuth>
-						<Router>
-							<Route path="/:slug?" component={Home} />
-						</Router>
-					</ProvideAuth>
+					<Router>
+						<Route path="/:slug?" component={Home} />
+					</Router>
 				</SnackbarProvider>
 			</ThemeProvider>
 			{

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useHistory, useLocation, Redirect } from 'react-router-dom';
+import { useLocation, Redirect } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Grid, Typography } from '@material-ui/core';
 import { useAuth } from '../../hooks/auth';
@@ -7,19 +7,13 @@ import useStyles from './styles';
 
 const Login = () => {
 	const classes = useStyles();
-	const history = useHistory();
 	const location = useLocation();
 	const { user, login } = useAuth();
 
 	const { from }: any = location.state || { from: { pathname: "/" } };
 
-	const handleLogin = (user: any) => {
-		console.log("Logged in user: ", user);
-		history.replace(from);
-	};
-
 	if (user === null) {
-		login(handleLogin);
+		login();
 		return (
 			<Grid item container direction="column" className={classes.description} justifyContent="space-around">
 				<Helmet>

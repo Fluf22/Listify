@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useDeleteWish, useGetAllWishes, usePostWish, usePutWish, usePatchWish } from '../../queries/wishes';
 import WarningIcon from '@material-ui/icons/Warning';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
