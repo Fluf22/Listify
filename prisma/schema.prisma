@@ -1,0 +1,132 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+model User {
+  id            String  @id @default(cuid())
+  email         String  @unique
+  name          String
+  password      String
+  emailVerified Boolean @default(false)
+  emailToken    String?
+
+  lists     List[]          @relation("Owner_List")
+  attenting Participation[] @relation("User_Participation")
+  managing  Event[]         @relation("Owner_Event")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Participation {
+  id      String  @id @default(uuid())
+  userId  String
+  eventId String
+  listId  String?
+  status  String // "pending", "accepted", "declined"
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user  User  @relation(name: "User_Participation", fields: [userId], references: [id])
+  event Event @relation(name: "Event_UserParticipation", fields: [eventId], references: [id])
+  list  List? @relation(name: "List_Participation", fields: [listId], references: [id])
+
+  @@unique([userId, eventId]) // only one participation per user per event
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  date        DateTime?
+  ownerId     String
+
+  participants Participation[] @relation("Event_UserParticipation")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  owner User @relation(name: "Owner_Event", fields: [ownerId], references: [id])
+}
+
+model List {
+  id     String @id @default(uuid())
+  userId String
+
+  in               Participation[] @relation("List_Participation")
+  wishes           Wish[]          @relation("RecipientList_Wish")
+  ideasForOthers   Wish[]          @relation("AddedBy_Wish")
+  receivedMessages Message[]       @relation("OnList_Message")
+  sentMessages     Message[]       @relation("FromAuthor_Message")
+  gifts            Gifter[]        @relation("List_Gifter")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  owner User @relation(name: "Owner_List", fields: [userId], references: [id])
+}
+
+model Wish {
+  id          String  @id @default(uuid())
+  recipientId String
+  addedBy     String
+  title       String
+  description String?
+  image       String?
+  link        String?
+  price       Int?
+  order       Int
+
+  giftedBy Gifter[] @relation("Wish_Gifter")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  recipientList List @relation(name: "RecipientList_Wish", fields: [recipientId], references: [id])
+  addedByList   List @relation(name: "AddedBy_Wish", fields: [addedBy], references: [id])
+}
+
+model Gifter {
+  id       String @id @default(uuid())
+  wishId   String
+  gifterId String
+  amount   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  wish       Wish @relation(name: "Wish_Gifter", fields: [wishId], references: [id])
+  gifterList List @relation(name: "List_Gifter", fields: [gifterId], references: [id])
+
+  @@unique([wishId, gifterId])
+}
+
+model Message {
+  id          String @id @default(uuid())
+  recipientId String
+  authorId    String
+  content     String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  recipientList List @relation(name: "OnList_Message", fields: [recipientId], references: [id])
+  authorList    List @relation(name: "FromAuthor_Message", fields: [authorId], references: [id])
+}
