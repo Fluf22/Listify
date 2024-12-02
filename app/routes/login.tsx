@@ -18,7 +18,7 @@ const FormSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1).max(255).optional(),
   password: z.string().min(6),
-  address: z.string().optional(), // Honeypot field
+  address: z.string(), // Honeypot field
   mode: z.string().regex(/login|register/),
   redirectTo: z.string().optional(),
 });
@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = formData.get('password');
   const redirectTo = safeRedirect(formData.get('redirectTo'), '/');
 
-  if (address) {
+  if (address == null || typeof address !== 'string' || address.length !== 0) {
     return data(
       { errors: { submit: 'Invalid form' } },
       { status: 200 },
@@ -117,6 +117,7 @@ export default function AuthPage() {
     defaultValues: {
       email: '',
       password: '',
+      address: '',
       mode: 'login',
       redirectTo,
     },
