@@ -33,12 +33,14 @@ export async function getUserId(
 
 export async function getUser(request: Request) {
   const userId = await getUserId(request);
-  if (userId === undefined)
+  if (userId == null) {
     return null;
+  }
 
   const user = await getUserById(userId);
-  if (user)
+  if (user) {
     return user;
+  }
 
   throw await logout(request);
 }

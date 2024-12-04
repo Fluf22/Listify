@@ -7,3 +7,5 @@ node_modules
 *.tsbuildinfo
 postgres-data
 .idea
+dev.db
+prisma/dev.db

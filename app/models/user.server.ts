@@ -1,7 +1,9 @@
 import type { User } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 
+import bcrypt from 'bcryptjs';
 import { prisma } from '~/db.server';
+import { resend } from '~/emails.server';
 
 export async function getUserById(id: User['id']) {
   return prisma.user.findUnique({ where: { id } });
@@ -15,17 +17,38 @@ export async function createUser(
   email: User['email'],
   name: User['name'],
   password: string,
-): Promise<{ user: User }> {
+): Promise<User> {
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      name,
-    },
-  });
+  // Create a token that includes timestamp for expiration
+  const timestamp = Date.now();
+  const verificationToken = `${randomBytes(32).toString('hex')}.${timestamp}`;
 
-  return { user };
+  let user: User;
+  try {
+    user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        emailToken: verificationToken,
+      },
+    });
+  } catch (e) {
+    throw new Error('Failed to create user', { cause: e });
+  }
+
+  try {
+    await resend.emails.send({
+      from: 'noreply@caudex.fr',
+      to: email,
+      subject: 'Verify your email',
+      html: `Click <a href="https://${process.env.APP_URL}/verify-email?token=${verificationToken}">here</a> to verify your email`,
+    });
+  } catch (e) {
+    throw new Error('Failed to send verification email', { cause: e });
+  }
+
+  return user;
 }
 
 export async function deleteUserByEmail(email: User['email']) {
