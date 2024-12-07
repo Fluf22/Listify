@@ -40,11 +40,11 @@ type ResendFormData = z.infer<typeof resendSchema>;
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   if (user == null) {
-    return redirect('/login');
+    throw redirect('/login');
   }
 
   if (user.emailVerified) {
-    return redirect('/');
+    throw redirect('/');
   }
 
   const url = new URL(request.url);
@@ -89,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (user.emailVerified === true) {
-    return redirect('/login');
+    throw redirect('/login');
   }
 
   // Generate new verification token

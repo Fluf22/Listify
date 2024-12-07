@@ -25,7 +25,7 @@ const FormSchema = z.object({
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) {
-    return redirect('/dashboard');
+    return redirect('/wishes');
   }
 
   return {};
@@ -37,7 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const name = formData.get('name');
   const address = formData.get('address');
   const password = formData.get('password');
-  const redirectTo = safeRedirect(formData.get('redirectTo'), '/dashboard');
+  const redirectTo = safeRedirect(formData.get('redirectTo'), '/wishes');
 
   if (address == null || typeof address !== 'string' || address.length !== 0) {
     return data(
@@ -126,7 +126,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     form.clearErrors();
-    if (fetcher.data?.errors) {
+    if (fetcher.data?.errors?.errors) {
       toast({
         variant: 'destructive',
         title: 'Error',

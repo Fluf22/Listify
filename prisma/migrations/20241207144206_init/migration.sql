@@ -43,6 +43,8 @@ CREATE TABLE "Event" (
 CREATE TABLE "List" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
+    "name" TEXT,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,

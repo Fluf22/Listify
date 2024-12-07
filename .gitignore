@@ -9,3 +9,4 @@ postgres-data
 .idea
 dev.db
 prisma/dev.db
+prisma/dev.db-*

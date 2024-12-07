@@ -40,7 +40,7 @@ export default function Layout() {
             <div className="flex items-center space-x-4">
               <Link
                 to="/"
-                className={`flex items-center space-x-2 ${currentPath === '/dashboard' ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-2 ${currentPath === '/wishes' ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Gift className="h-4 w-4" />
                 <span>My Wishes</span>

@@ -23,7 +23,7 @@ const FormSchema = z.object({
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   if (user?.emailVerified === true) {
-    return redirect('/dashboard');
+    return redirect('/wishes');
   }
 
   return {};
@@ -34,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get('email');
   const address = formData.get('address');
   const password = formData.get('password');
-  const redirectTo = safeRedirect(formData.get('redirectTo'), '/dashboard');
+  const redirectTo = safeRedirect(formData.get('redirectTo'), '/wishes');
 
   if (address == null || typeof address !== 'string' || address.length !== 0) {
     return data(

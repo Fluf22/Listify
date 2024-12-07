@@ -51,6 +51,8 @@ Table Event {
 Table List {
   id String [pk]
   userId String [not null]
+  name String
+  isDefault Boolean [not null, default: false]
   in Participation [not null]
   wishes Wish [not null]
   ideasForOthers Wish [not null]

@@ -63,8 +63,10 @@ model Event {
 }
 
 model List {
-  id     String @id @default(uuid())
-  userId String
+  id        String  @id @default(uuid())
+  userId    String
+  name      String?
+  isDefault Boolean @default(false)
 
   in               Participation[] @relation("List_Participation")
   wishes           Wish[]          @relation("RecipientList_Wish")

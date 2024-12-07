@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '~/db.server';
 import { resend } from '~/emails.server';
+import { requireUser } from '~/session.server';
 
 export async function getUserById(id: User['id']) {
   return prisma.user.findUnique({ where: { id } });
@@ -25,16 +26,29 @@ export async function createUser(
 
   let user: User;
   try {
-    user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        emailToken: verificationToken,
-      },
+    user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          emailToken: verificationToken,
+        },
+      });
+
+      await tx.list.create({
+        data: {
+          name: 'Default',
+          isDefault: true,
+          userId: createdUser.id,
+        },
+      });
+
+      return createdUser;
     });
   } catch (e) {
-    throw new Error('Failed to create user', { cause: e });
+    console.error(e);
+    throw new Error('Failed to create user');
   }
 
   try {
@@ -76,4 +90,14 @@ export async function verifyLogin(
   const { password: _password, ...userWithoutPassword } = user;
 
   return userWithoutPassword;
+}
+
+export async function getUserDefaultList(request: Request) {
+  const user = await requireUser(request);
+  return prisma.list.findFirst({
+    where: {
+      userId: user.id,
+      isDefault: true,
+    },
+  });
 }
