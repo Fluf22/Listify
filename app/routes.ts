@@ -8,4 +8,5 @@ export default [
   route('login', 'routes/login.tsx'),
   route('register', 'routes/register.tsx'),
   route('verify-email', 'routes/verify-email.tsx'),
+  route('logout', 'routes/logout.ts'),
 ] satisfies RouteConfig;
