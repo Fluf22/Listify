@@ -1,7 +1,8 @@
 import type { ActionFunctionArgs } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { data, useFetcher, useNavigate, useOutletContext } from 'react-router';
+import { data, redirect, useFetcher, useNavigate, useOutletContext } from 'react-router';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
 import {
@@ -21,6 +22,7 @@ import {
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
+import { useToast } from '~/hooks/use-toast';
 import { getUserDefaultList } from '~/models/user.server';
 import { addWish } from '~/models/wish.server';
 
@@ -146,7 +148,7 @@ export async function action({ request }: ActionFunctionArgs) {
     },
   });
 
-  return { ok: true };
+  throw redirect('/wishes');
 }
 
 interface AddWishDialogOutletContextProps {
@@ -155,7 +157,7 @@ interface AddWishDialogOutletContextProps {
 }
 
 export default function AddWishDialog() {
-  const { index } = useOutletContext<AddWishDialogOutletContextProps>();
+  const { index, recipientListID } = useOutletContext<AddWishDialogOutletContextProps>();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(FormSchema),
@@ -163,10 +165,27 @@ export default function AddWishDialog() {
       title: '',
       description: undefined,
       price: undefined,
-      order: index ?? 0,
+      order: index,
+      recipientListID,
     },
   });
   const fetcher = useFetcher();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (fetcher.data?.message == null) {
+      return;
+    }
+
+    toast({
+      variant: fetcher.data.ok === true ? 'default' : 'destructive',
+      ...fetcher.data.message,
+    });
+
+    if (fetcher.data.ok === true) {
+      form.reset();
+    }
+  }, [fetcher.data, form, navigate, toast]);
 
   return (
     <Dialog open onOpenChange={isOpen => isOpen || navigate('..')}>
@@ -178,7 +197,7 @@ export default function AddWishDialog() {
           Describe the wish you would like to add to your list.
         </DialogDescription>
         <Form {...form}>
-          <fetcher.Form className="space-y-4">
+          <fetcher.Form method="post" className="space-y-4">
             <FormField
               control={form.control}
               name="title"
@@ -241,7 +260,22 @@ export default function AddWishDialog() {
               )}
             />
 
+            <FormField
+              name="recipientListID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem hidden>
+                  <FormLabel>Recipient List ID</FormLabel>
+                  <FormControl>
+                    <Input type="text" {...field} value={recipientListID} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit">Add Wish</Button>
+            <FormMessage>{fetcher.data?.errors?.submit}</FormMessage>
           </fetcher.Form>
         </Form>
       </DialogContent>

@@ -35,8 +35,6 @@ const resendSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
-type ResendFormData = z.infer<typeof resendSchema>;
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   if (user == null) {
@@ -120,7 +118,7 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const data = useLoaderData();
   const fetcher = useFetcher();
-  const form = useForm<ResendFormData>({
+  const form = useForm<z.infer<typeof resendSchema>>({
     resolver: zodResolver(resendSchema),
     defaultValues: {
       email: '',
@@ -148,12 +146,16 @@ export default function VerifyEmailPage() {
   }, [data, navigate, toast]);
 
   useEffect(() => {
+    if (fetcher.data?.message == null) {
+      return;
+    }
+
     toast({
-      variant: fetcher.data?.ok === true ? 'default' : 'destructive',
+      variant: fetcher.data.ok === true ? 'default' : 'destructive',
       ...fetcher.data.message,
     });
 
-    if (fetcher.data?.ok === true) {
+    if (fetcher.data.ok === true) {
       form.reset();
     }
   }, [fetcher.data, form, navigate, toast]);
