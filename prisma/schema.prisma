@@ -29,7 +29,7 @@ model User {
 }
 
 model Participation {
-  id      String  @id @default(uuid())
+  id      String  @id @default(cuid())
   userId  String
   eventId String
   listId  String?
@@ -47,7 +47,7 @@ model Participation {
 }
 
 model Event {
-  id          String    @id @default(uuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   date        DateTime?
@@ -63,7 +63,7 @@ model Event {
 }
 
 model List {
-  id        String  @id @default(uuid())
+  id        String  @id @default(cuid())
   userId    String
   name      String?
   isDefault Boolean @default(false)
@@ -83,7 +83,7 @@ model List {
 }
 
 model Wish {
-  id          String  @id @default(uuid())
+  id          String  @id @default(cuid())
   recipientId String
   addedBy     String
   title       String
@@ -104,7 +104,7 @@ model Wish {
 }
 
 model Gifter {
-  id       String @id @default(uuid())
+  id       String @id @default(cuid())
   wishId   String
   gifterId String
   amount   Int
@@ -120,7 +120,7 @@ model Gifter {
 }
 
 model Message {
-  id          String @id @default(uuid())
+  id          String @id @default(cuid())
   recipientId String
   authorId    String
   content     String
