@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '~/db.server';
 import { resend } from '~/emails.server';
+import { DEFAULT_EVENT_TITLE, getDefaultEvent } from '~/models/event.server';
 import { requireUser } from '~/session.server';
 
 export async function getUserById(id: User['id']) {
@@ -36,11 +37,16 @@ export async function createUser(
         },
       });
 
-      await tx.list.create({
+      await tx.event.create({
         data: {
-          name: 'Default',
-          isDefault: true,
-          userId: createdUser.id,
+          title: DEFAULT_EVENT_TITLE,
+          ownerId: createdUser.id,
+          participants: {
+            create: {
+              userId: createdUser.id,
+              status: 'ACCEPTED',
+            },
+          },
         },
       });
 
@@ -94,10 +100,5 @@ export async function verifyLogin(
 
 export async function getUserDefaultList(request: Request) {
   const user = await requireUser(request);
-  return prisma.list.findFirst({
-    where: {
-      userId: user.id,
-      isDefault: true,
-    },
-  });
+  return getDefaultEvent(user);
 }

@@ -16,14 +16,12 @@ CREATE TABLE "Participation" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
-    "listId" TEXT,
     "status" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
     CONSTRAINT "Participation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Participation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Participation_listId_fkey" FOREIGN KEY ("listId") REFERENCES "List" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Participation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -40,22 +38,11 @@ CREATE TABLE "Event" (
 );
 
 -- CreateTable
-CREATE TABLE "List" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "userId" TEXT NOT NULL,
-    "name" TEXT,
-    "isDefault" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "deletedAt" DATETIME,
-    CONSTRAINT "List_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "Wish" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "recipientId" TEXT NOT NULL,
-    "addedBy" TEXT NOT NULL,
+    "creatorId" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "image" TEXT,
@@ -65,8 +52,9 @@ CREATE TABLE "Wish" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Wish_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "List" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Wish_addedBy_fkey" FOREIGN KEY ("addedBy") REFERENCES "List" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Wish_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Wish_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Wish_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -79,20 +67,20 @@ CREATE TABLE "Gifter" (
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
     CONSTRAINT "Gifter_wishId_fkey" FOREIGN KEY ("wishId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Gifter_gifterId_fkey" FOREIGN KEY ("gifterId") REFERENCES "List" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Gifter_gifterId_fkey" FOREIGN KEY ("gifterId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
 CREATE TABLE "Message" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "recipientId" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
+    "fromId" TEXT NOT NULL,
+    "onId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Message_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "List" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Message_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "List" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Message_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Message_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex
@@ -100,6 +88,12 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Participation_userId_eventId_key" ON "Participation"("userId", "eventId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Event_ownerId_title_key" ON "Event"("ownerId", "title");
+
+-- CreateIndex
+CREATE INDEX "Wish_eventId_creatorId_recipientId_createdAt_idx" ON "Wish"("eventId", "creatorId", "recipientId", "createdAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Gifter_wishId_gifterId_key" ON "Gifter"("wishId", "gifterId");

@@ -23,8 +23,8 @@ import {
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { useToast } from '~/hooks/use-toast';
-import { getUserDefaultList } from '~/models/user.server';
 import { addWish } from '~/models/wish.server';
+import { requireUser } from '~/session.server';
 
 const FormSchema = z.object({
   title: z.string().min(1).max(255),
@@ -32,6 +32,7 @@ const FormSchema = z.object({
   price: z.number().min(0).optional(),
   order: z.number().min(0),
   recipientListID: z.string(),
+  eventID: z.string(),
 });
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -41,7 +42,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const description = formData.get('description');
   const price = formData.get('price');
   const order = formData.get('order');
-  const recipientListID = formData.get('recipientListID');
+  const recipientId = formData.get('recipientId');
+  const eventId = formData.get('eventId');
 
   // Check title
   if (title == null || typeof title !== 'string' || title.length === 0) {
@@ -116,19 +118,24 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  // Check recipient list ID
-  if (recipientListID == null || typeof recipientListID !== 'string' || recipientListID.length === 0) {
+  // Check recipient ID
+  if (recipientId == null || typeof recipientId !== 'string' || recipientId.length === 0) {
     return data(
       { ok: false, errors: { recipientListID: 'Recipient list ID is required' } },
       { status: 400 },
     );
   }
 
-  // Retrieve protagonist list ID
-  const protagonistDefaultList = await getUserDefaultList(request);
-  if (protagonistDefaultList == null) {
-    throw new Error('Failed to get protagonist default list');
+  // Check event ID
+  if (eventId == null || typeof eventId !== 'string' || eventId.length === 0) {
+    return data(
+      { ok: false, errors: { eventID: 'Event ID is required' } },
+      { status: 400 },
+    );
   }
+
+  // Retrieve creator ID
+  const creator = await requireUser(request);
 
   // Add wish
   await addWish({
@@ -136,28 +143,34 @@ export async function action({ request }: ActionFunctionArgs) {
     description,
     price: priceNumber,
     order: orderNumber,
-    recipientList: {
+    recipient: {
       connect: {
-        id: recipientListID,
+        id: recipientId,
       },
     },
-    addedByList: {
+    creator: {
       connect: {
-        id: protagonistDefaultList.id,
+        id: creator.id,
+      },
+    },
+    event: {
+      connect: {
+        id: eventId,
       },
     },
   });
 
-  throw redirect('/wishes');
+  throw redirect(`..`);
 }
 
 interface AddWishDialogOutletContextProps {
   index: number;
-  recipientListID: string;
+  recipientId: string;
+  eventId: string;
 }
 
 export default function AddWishDialog() {
-  const { index, recipientListID } = useOutletContext<AddWishDialogOutletContextProps>();
+  const { index, recipientId, eventId } = useOutletContext<AddWishDialogOutletContextProps>();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(FormSchema),
@@ -166,7 +179,8 @@ export default function AddWishDialog() {
       description: undefined,
       price: undefined,
       order: index,
-      recipientListID,
+      recipientId,
+      eventId,
     },
   });
   const fetcher = useFetcher();
@@ -261,13 +275,27 @@ export default function AddWishDialog() {
             />
 
             <FormField
-              name="recipientListID"
+              name="recipientId"
               control={form.control}
               render={({ field }) => (
                 <FormItem hidden>
-                  <FormLabel>Recipient List ID</FormLabel>
+                  <FormLabel>Recipient ID</FormLabel>
                   <FormControl>
-                    <Input type="text" {...field} value={recipientListID} />
+                    <Input type="text" {...field} value={recipientId} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="eventId"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem hidden>
+                  <FormLabel>Event ID</FormLabel>
+                  <FormControl>
+                    <Input type="text" {...field} value={eventId} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -21,10 +21,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { user, currentPath: url.pathname };
 }
 
-export default function Layout() {
+export default function Main() {
   const { user, currentPath } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const form = useForm();
+
+  const matchWishes = /^\/events\/[^/]+\/lists\/[^/]+\/wishes/.test(currentPath);
 
   return (
     <div>
@@ -40,14 +42,14 @@ export default function Layout() {
             <div className="flex items-center space-x-4">
               <Link
                 to="/"
-                className={`flex items-center space-x-2 ${currentPath === '/wishes' ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-2 ${matchWishes ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Gift className="h-4 w-4" />
                 <span>My Wishes</span>
               </Link>
               <Link
                 to="/events"
-                className={`flex items-center space-x-2 ${currentPath === '/events' ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-2 ${!matchWishes && currentPath.startsWith('/events') ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Users className="h-4 w-4" />
                 <span>Events</span>

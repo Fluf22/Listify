@@ -19,8 +19,11 @@ model User {
   emailVerified Boolean @default(false)
   emailToken    String?
 
-  lists     List[]          @relation("Owner_List")
-  attenting Participation[] @relation("User_Participation")
+  wishes    Wish[]          @relation("AddedBy_Wish")
+  receives  Wish[]          @relation("Recipient_Wish")
+  gifts     Gifter[]        @relation("User_Gifter")
+  sent      Message[]       @relation("FromUser_Message")
+  attending Participation[] @relation("User_Participation")
   managing  Event[]         @relation("Owner_Event")
 
   createdAt DateTime  @default(now())
@@ -29,11 +32,10 @@ model User {
 }
 
 model Participation {
-  id      String  @id @default(cuid())
+  id      String @id @default(cuid())
   userId  String
   eventId String
-  listId  String?
-  status  String // "pending", "accepted", "declined"
+  status  String // "PENDING", "ACCEPTED", "DECLINED"
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -41,7 +43,6 @@ model Participation {
 
   user  User  @relation(name: "User_Participation", fields: [userId], references: [id])
   event Event @relation(name: "Event_UserParticipation", fields: [eventId], references: [id])
-  list  List? @relation(name: "List_Participation", fields: [listId], references: [id])
 
   @@unique([userId, eventId]) // only one participation per user per event
 }
@@ -54,38 +55,22 @@ model Event {
   ownerId     String
 
   participants Participation[] @relation("Event_UserParticipation")
+  wishes       Wish[]          @relation(name: "Event_Wish")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   owner User @relation(name: "Owner_Event", fields: [ownerId], references: [id])
-}
 
-model List {
-  id        String  @id @default(cuid())
-  userId    String
-  name      String?
-  isDefault Boolean @default(false)
-
-  in               Participation[] @relation("List_Participation")
-  wishes           Wish[]          @relation("RecipientList_Wish")
-  ideasForOthers   Wish[]          @relation("AddedBy_Wish")
-  receivedMessages Message[]       @relation("OnList_Message")
-  sentMessages     Message[]       @relation("FromAuthor_Message")
-  gifts            Gifter[]        @relation("List_Gifter")
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  owner User @relation(name: "Owner_List", fields: [userId], references: [id])
+  @@unique([ownerId, title]) // Each user can only have one event with the same title
 }
 
 model Wish {
   id          String  @id @default(cuid())
   recipientId String
-  addedBy     String
+  creatorId   String
+  eventId     String
   title       String
   description String?
   image       String?
@@ -93,14 +78,18 @@ model Wish {
   price       Int?
   order       Int
 
-  giftedBy Gifter[] @relation("Wish_Gifter")
+  giftedBy Gifter[]  @relation("Wish_Gifter")
+  messages Message[] @relation("OnWish_Message")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  recipientList List @relation(name: "RecipientList_Wish", fields: [recipientId], references: [id])
-  addedByList   List @relation(name: "AddedBy_Wish", fields: [addedBy], references: [id])
+  recipient User  @relation(name: "Recipient_Wish", fields: [recipientId], references: [id])
+  creator   User  @relation(name: "AddedBy_Wish", fields: [creatorId], references: [id])
+  event     Event @relation(name: "Event_Wish", fields: [eventId], references: [id])
+
+  @@index([eventId, creatorId, recipientId, createdAt(sort: Desc)]) // Most used query
 }
 
 model Gifter {
@@ -113,22 +102,22 @@ model Gifter {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  wish       Wish @relation(name: "Wish_Gifter", fields: [wishId], references: [id])
-  gifterList List @relation(name: "List_Gifter", fields: [gifterId], references: [id])
+  wish   Wish @relation(name: "Wish_Gifter", fields: [wishId], references: [id])
+  gifter User @relation(name: "User_Gifter", fields: [gifterId], references: [id])
 
   @@unique([wishId, gifterId])
 }
 
 model Message {
-  id          String @id @default(cuid())
-  recipientId String
-  authorId    String
-  content     String
+  id      String @id @default(cuid())
+  fromId  String
+  onId    String
+  content String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  recipientList List @relation(name: "OnList_Message", fields: [recipientId], references: [id])
-  authorList    List @relation(name: "FromAuthor_Message", fields: [authorId], references: [id])
+  from User @relation(name: "FromUser_Message", fields: [fromId], references: [id])
+  on   Wish @relation(name: "OnWish_Message", fields: [onId], references: [id])
 }
