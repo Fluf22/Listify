@@ -14,13 +14,13 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Participation" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "userId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Participation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Participation_email_fkey" FOREIGN KEY ("email") REFERENCES "User" ("email") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Participation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -101,7 +101,7 @@ CREATE TABLE "EventMessage" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Participation_userId_eventId_key" ON "Participation"("userId", "eventId");
+CREATE UNIQUE INDEX "Participation_email_eventId_key" ON "Participation"("email", "eventId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Event_ownerId_title_key" ON "Event"("ownerId", "title");

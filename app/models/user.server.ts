@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 
 import bcrypt from 'bcryptjs';
 import { prisma } from '~/db.server';
-import { resend } from '~/emails.server';
+import { EMAIL_FROM, resend } from '~/emails.server';
 import { DEFAULT_EVENT_TITLE, getDefaultEvent } from '~/models/event.server';
 import { requireUser } from '~/session.server';
 
@@ -37,16 +37,18 @@ export async function createUser(
         },
       });
 
-      await tx.event.create({
+      const event = await tx.event.create({
         data: {
           title: DEFAULT_EVENT_TITLE,
           ownerId: createdUser.id,
-          participants: {
-            create: {
-              userId: createdUser.id,
-              status: 'ACCEPTED',
-            },
-          },
+        },
+      });
+
+      await tx.participation.create({
+        data: {
+          email: createdUser.email,
+          eventId: event.id,
+          status: 'ACCEPTED',
         },
       });
 
@@ -59,10 +61,10 @@ export async function createUser(
 
   try {
     await resend.emails.send({
-      from: 'noreply@caudex.fr',
+      from: EMAIL_FROM,
       to: email,
       subject: 'Verify your email',
-      html: `Click <a href="https://${process.env.APP_URL}/verify-email?token=${verificationToken}">here</a> to verify your email`,
+      html: `Click <a href="${process.env.APP_URL}/verify-email?token=${verificationToken}">here</a> to verify your email`,
     });
   } catch (e) {
     throw new Error('Failed to send verification email', { cause: e });

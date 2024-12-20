@@ -34,18 +34,18 @@ model User {
 
 model Participation {
   id      String @id @default(cuid())
-  userId  String
+  email   String
   eventId String
-  status  String // "PENDING", "ACCEPTED", "DECLINED"
+  status  String @default("PENDING") // "PENDING", "ACCEPTED", "DECLINED"
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  user  User  @relation(name: "User_Participation", fields: [userId], references: [id])
+  user  User  @relation(name: "User_Participation", fields: [email], references: [email])
   event Event @relation(name: "Event_UserParticipation", fields: [eventId], references: [id])
 
-  @@unique([userId, eventId]) // only one participation per user per event
+  @@unique([email, eventId]) // only one participation per user per event
 }
 
 model Event {

@@ -25,7 +25,7 @@ import {
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
 import { prisma } from '~/db.server';
-import { resend } from '~/emails.server';
+import { EMAIL_FROM, resend } from '~/emails.server';
 import { useToast } from '~/hooks/use-toast';
 import { getUserByEmail } from '~/models/user.server';
 import { getUser } from '~/session.server';
@@ -104,10 +104,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Send new verification email
   await resend.emails.send({
-    from: 'noreply@caudex.fr',
+    from: EMAIL_FROM,
     to: user.email,
     subject: 'New verification email',
-    html: `Click <a href="${process.env.APP_URL}/api/verify-email?token=${newToken}">here</a> to verify your email`,
+    html: `Click <a href="${process.env.APP_URL}/verify-email?token=${newToken}">here</a> to verify your email`,
   });
 
   return { ok: true, message: { title: 'Email verification link sent', description: 'Please check your mailbox!' } };

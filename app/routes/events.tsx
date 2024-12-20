@@ -1,18 +1,21 @@
 import type { Event } from '@prisma/client';
 import type { LoaderFunctionArgs } from 'react-router';
 import type { Route } from '../../.react-router/types/app/routes/+types/events';
+import { Plus } from 'lucide-react';
+import { Link, Outlet } from 'react-router';
 import EventListItem from '~/components/event-list-item';
+import { Button } from '~/components/ui/button';
 import { prisma } from '~/db.server';
 import { DEFAULT_EVENT_TITLE } from '~/models/event.server';
-import { requireUserId } from '~/session.server';
+import { requireUser } from '~/session.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request);
+  const user = await requireUser(request);
   const events = await prisma.event.findMany({
     where: {
       participants: {
         some: {
-          userId,
+          email: user.email,
         },
       },
     },
@@ -20,9 +23,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const { defaultList, managedEvents, participantEvents } = events.reduce(
     (acc, event) => {
-      if (event.ownerId === userId && event.title === DEFAULT_EVENT_TITLE) {
+      if (event.ownerId === user.id && event.title === DEFAULT_EVENT_TITLE) {
         acc.defaultList = event;
-      } else if (event.ownerId === userId) {
+      } else if (event.ownerId === user.id) {
         acc.managedEvents.push(event);
       } else {
         acc.participantEvents.push(event);
@@ -45,8 +48,14 @@ export default function Events({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <div className="space-y-8">
-        <div>
+        <div className="flex flex-row justify-between">
           <h1 className="text-4xl font-bold">Events</h1>
+          <Link to="./new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Event
+            </Button>
+          </Link>
         </div>
         {defaultList && (
           <div>
@@ -74,6 +83,8 @@ export default function Events({ loaderData }: Route.ComponentProps) {
           </ul>
         </div>
       </div>
+
+      <Outlet />
     </div>
   );
 }

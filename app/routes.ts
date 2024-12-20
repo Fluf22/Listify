@@ -3,7 +3,9 @@ import { index, layout, route, type RouteConfig } from '@react-router/dev/routes
 export default [
   layout('components/layouts/main.tsx', [
     index('routes/home.tsx'),
-    route('events', 'routes/events.tsx'),
+    route('events', 'routes/events.tsx', [
+      route('new', 'routes/add-event-dialog.tsx'),
+    ]),
     route('events/:eventId', 'routes/event.tsx'),
     route('events/:eventId/lists/:recipientId/wishes', 'routes/wishes.tsx', [
       route('new', 'routes/add-wish-dialog.tsx'),

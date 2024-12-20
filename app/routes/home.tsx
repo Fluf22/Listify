@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { prisma } from '~/db.server';
 import { DEFAULT_EVENT_TITLE } from '~/models/event.server';
-import { logout, requireUserId } from '~/session.server';
+import { logout, requireUser } from '~/session.server';
 import { safeRedirect } from '~/utils';
 
 type EventOverview = Partial<Event> & { _count: { participants: number } };
@@ -17,18 +17,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect(safeRedirect(redirectTo));
   }
 
-  const userId = await requireUserId(request);
+  const user = await requireUser(request);
 
   const defaultList = await prisma.event.findUnique({
     where: {
       ownerId_title: {
         title: DEFAULT_EVENT_TITLE,
-        ownerId: userId,
+        ownerId: user.id,
       },
     },
     select: {
       wishes: {
         select: {
+          id: true,
           title: true,
           price: true,
         },
@@ -50,12 +51,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
         {
           OR: [
             {
-              ownerId: userId,
+              ownerId: user.id,
             },
             {
               participants: {
                 some: {
-                  userId,
+                  email: user.email,
                 },
               },
             },
@@ -85,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const { managedEvents, participantEvents } = events.reduce(
     (acc, event) => {
-      if (event.ownerId === userId) {
+      if (event.ownerId === user.id) {
         acc.managedEvents.push(event);
       } else {
         acc.participantEvents.push(event);
@@ -100,12 +101,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const giftsToBuy = await prisma.gifter.findMany({
     where: {
-      gifterId: userId,
+      gifterId: user.id,
     },
     select: {
       amount: true,
       wish: {
         select: {
+          id: true,
           title: true,
           price: true,
           recipient: {
@@ -120,7 +122,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const invitations = await prisma.participation.findMany({
     where: {
-      userId,
+      email: user.email,
       status: 'PENDING',
     },
     select: {
@@ -145,14 +147,16 @@ export default function Home() {
         <Link to="/events/default/lists/me/wishes">
           <Card>
             <CardHeader>
-              <h3 className="font-bold text-lg">Your wishes</h3>
-              <Badge>Private</Badge>
+              <div className="flex flex-row space-x-2">
+                <h3 className="font-bold text-lg">Your wishes</h3>
+                <Badge>Private</Badge>
+              </div>
             </CardHeader>
             <CardContent>
               <ul className="mt-2 space-y-1">
-                {defaultList.wishes.map((wish, index) => (
-                  <li key={index} className="text-gray-700">
-                    {wish.title}
+                {defaultList.wishes.map(wish => (
+                  <li key={wish.id} className="text-gray-700">
+                    {`${wish.title} $${wish.price}`}
                   </li>
                 ))}
               </ul>

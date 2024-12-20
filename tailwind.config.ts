@@ -52,6 +52,9 @@ export default {
           5: 'hsl(var(--chart-5))',
         },
       },
+      transitionProperty: {
+        width: 'width',
+      },
     },
   },
   // eslint-disable-next-line ts/no-require-imports
