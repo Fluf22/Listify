@@ -25,7 +25,7 @@ const FormSchema = z.object({
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) {
-    return redirect('/wishes');
+    return redirect('/');
   }
 
   return {};

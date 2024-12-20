@@ -63,6 +63,7 @@ CREATE TABLE "Gifter" (
     "wishId" TEXT NOT NULL,
     "gifterId" TEXT NOT NULL,
     "amount" INTEGER NOT NULL,
+    "bought" BOOLEAN NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
@@ -71,7 +72,7 @@ CREATE TABLE "Gifter" (
 );
 
 -- CreateTable
-CREATE TABLE "Message" (
+CREATE TABLE "WishMessage" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "fromId" TEXT NOT NULL,
     "onId" TEXT NOT NULL,
@@ -79,8 +80,21 @@ CREATE TABLE "Message" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Message_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Message_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "WishMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "WishMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "EventMessage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "fromId" TEXT NOT NULL,
+    "onId" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "deletedAt" DATETIME,
+    CONSTRAINT "EventMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "EventMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex

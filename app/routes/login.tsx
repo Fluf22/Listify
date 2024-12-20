@@ -23,7 +23,7 @@ const FormSchema = z.object({
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   if (user?.emailVerified === true) {
-    return redirect('/wishes');
+    return redirect('/');
   }
 
   return {};

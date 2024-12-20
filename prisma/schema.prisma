@@ -19,12 +19,13 @@ model User {
   emailVerified Boolean @default(false)
   emailToken    String?
 
-  wishes    Wish[]          @relation("AddedBy_Wish")
-  receives  Wish[]          @relation("Recipient_Wish")
-  gifts     Gifter[]        @relation("User_Gifter")
-  sent      Message[]       @relation("FromUser_Message")
-  attending Participation[] @relation("User_Participation")
-  managing  Event[]         @relation("Owner_Event")
+  wishes        Wish[]          @relation("AddedBy_Wish")
+  receives      Wish[]          @relation("Recipient_Wish")
+  gifts         Gifter[]        @relation("User_Gifter")
+  sent          WishMessage[]   @relation("FromUser_WishMessage")
+  eventMessages EventMessage[]  @relation("FromUser_EventMessage")
+  attending     Participation[] @relation("User_Participation")
+  managing      Event[]         @relation("Owner_Event")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -56,6 +57,7 @@ model Event {
 
   participants Participation[] @relation("Event_UserParticipation")
   wishes       Wish[]          @relation(name: "Event_Wish")
+  messages     EventMessage[]  @relation("OnEvent_EventMessage")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -78,8 +80,8 @@ model Wish {
   price       Int?
   order       Int
 
-  giftedBy Gifter[]  @relation("Wish_Gifter")
-  messages Message[] @relation("OnWish_Message")
+  giftedBy Gifter[]      @relation("Wish_Gifter")
+  messages WishMessage[] @relation("OnWish_WishMessage")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -93,10 +95,11 @@ model Wish {
 }
 
 model Gifter {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   wishId   String
   gifterId String
   amount   Int
+  bought   Boolean
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -108,7 +111,7 @@ model Gifter {
   @@unique([wishId, gifterId])
 }
 
-model Message {
+model WishMessage {
   id      String @id @default(cuid())
   fromId  String
   onId    String
@@ -118,6 +121,20 @@ model Message {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  from User @relation(name: "FromUser_Message", fields: [fromId], references: [id])
-  on   Wish @relation(name: "OnWish_Message", fields: [onId], references: [id])
+  from User @relation(name: "FromUser_WishMessage", fields: [fromId], references: [id])
+  on   Wish @relation(name: "OnWish_WishMessage", fields: [onId], references: [id])
+}
+
+model EventMessage {
+  id      String @id @default(cuid())
+  fromId  String
+  onId    String
+  content String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  from User  @relation(name: "FromUser_EventMessage", fields: [fromId], references: [id])
+  on   Event @relation(name: "OnEvent_EventMessage", fields: [onId], references: [id])
 }

@@ -41,7 +41,7 @@ export default function Main() {
             </Link>
             <div className="flex items-center space-x-4">
               <Link
-                to="/"
+                to="/events/default/lists/me/wishes"
                 className={`flex items-center space-x-2 ${matchWishes ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 <Gift className="h-4 w-4" />
