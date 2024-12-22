@@ -1,6 +1,8 @@
 import type { LoaderFunctionArgs } from 'react-router';
 import type { Route } from '../../.react-router/types/app/routes/+types/event';
-import { Link, redirect } from 'react-router';
+import { Trash2 } from 'lucide-react';
+import { Link, Outlet, redirect } from 'react-router';
+import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { prisma } from '~/db.server';
 import { DEFAULT_EVENT_TITLE } from '~/models/event.server';
@@ -33,7 +35,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     },
   });
 
-  if (!event) {
+  if (!event || !event.participants.some(({ user }) => user.id === userId)) {
     throw redirect('/events');
   }
 
@@ -50,7 +52,20 @@ export default function Event({ loaderData }: Route.ComponentProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>
+          <div className="flex flex-row justify-between items-center">
+            <p>{title}</p>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+            >
+              <Link to="delete">
+                <Trash2 className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <p>{description}</p>
@@ -64,6 +79,7 @@ export default function Event({ loaderData }: Route.ComponentProps) {
           ))}
         </ul>
       </CardContent>
+      <Outlet />
     </Card>
   );
 }

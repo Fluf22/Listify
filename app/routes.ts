@@ -6,10 +6,11 @@ export default [
     route('events', 'routes/events.tsx', [
       route('new', 'routes/add-event-dialog.tsx'),
     ]),
-    route('events/:eventId', 'routes/event.tsx'),
+    route('events/:eventId', 'routes/event.tsx', [
+      route('delete', 'routes/delete-event-dialog.tsx'),
+    ]),
     route('events/:eventId/lists/:recipientId/wishes', 'routes/wishes.tsx', [
       route('new', 'routes/add-wish-dialog.tsx'),
-      // route(':wishId/edit', 'routes/edit-wish-dialog.tsx'),
       route(':wishId/delete', 'routes/delete-wish-dialog.tsx'),
     ]),
   ]),

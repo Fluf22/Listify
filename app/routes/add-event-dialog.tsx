@@ -1,15 +1,23 @@
 import type { ActionFunctionArgs } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useCallback, useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { data, redirect, useFetcher, useLoaderData, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table';
 import { Textarea } from '~/components/ui/textarea';
 import { prisma } from '~/db.server';
 import { EMAIL_FROM, resend } from '~/emails.server';
@@ -19,8 +27,8 @@ import { requireUser } from '~/session.server';
 const FormSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(255).optional(),
-  date: z.date().optional(),
-  participants: z.array(z.string().email()).optional(),
+  date: z.string().date().optional(),
+  participants: z.array(z.object({ email: z.string().email() })).min(1),
 });
 
 export async function loader({ request }: ActionFunctionArgs) {
@@ -30,14 +38,10 @@ export async function loader({ request }: ActionFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   // Check form data
-  const formData = await request.formData();
-  const title = formData.get('title');
-  const description = formData.get('description');
-  const date = formData.get('date');
-  const participantList = formData.get('participants');
+  const { title, description, date, participants: participantList } = await request.json() as z.infer<typeof FormSchema>;
 
   // Check title
-  if (title == null || typeof title !== 'string' || title.length === 0) {
+  if (title == null || title.length === 0) {
     return data(
       { ok: false, errors: { title: 'Title is required' } },
       { status: 400 },
@@ -52,23 +56,18 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Check description
-  if (description == null || typeof description !== 'string' || description.length === 0) {
-    return data(
-      { ok: false, errors: { description: 'Description is required' } },
-      { status: 400 },
-    );
-  }
-
-  if (description.length > 255) {
-    return data(
-      { ok: false, errors: { description: 'Description is too long' } },
-      { status: 400 },
-    );
+  if (description != null && description.length > 0) {
+    if (description.length > 255) {
+      return data(
+        { ok: false, errors: { description: 'Description is too long' } },
+        { status: 400 },
+      );
+    }
   }
 
   // Check date
   let dateValue = null;
-  if (date != null && typeof date === 'string' && date !== '') {
+  if (date != null && date !== '') {
     try {
       dateValue = new Date(date);
     } catch {
@@ -84,15 +83,24 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Check participants
   let participantEmails = null;
-  if (participantList != null && (!Array.isArray(participantList) || !participantList.every(p => typeof p === 'string') || !participantList.find(p => p === owner.email))) {
+  if (participantList != null && (
+    !Array.isArray(participantList)
+    || !participantList.every(participant => 'email' in participant && typeof participant.email === 'string' && participant.email.length > 0)
+    || !participantList.find(participant => participant.email === owner.email)
+  )) {
     return data(
-      { ok: false, errors: { participants: 'Participants must be a string' } },
+      {
+        ok: false,
+        errors: {
+          participants: 'Participants must be a list of strings, with at least the event creator\'s email',
+        },
+      },
       { status: 400 },
     );
   }
 
   try {
-    participantEmails = participantList?.map(p => p.trim()) ?? [];
+    participantEmails = participantList ?? [];
   } catch {
     return data(
       { ok: false, errors: { participants: 'Participants is invalid' } },
@@ -101,22 +109,30 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Create event
-  const { participants, id } = await prisma.event.create({
-    data: {
-      title,
-      description,
-      date: dateValue ? dateValue.toISOString() : undefined,
-      participants: {
-        createMany: {
-          data: participantEmails.map(email => ({ email })),
-        },
+  const { id, participants } = await prisma.$transaction(async (tx) => {
+    const { id } = await tx.event.create({
+      data: {
+        title,
+        description,
+        date: dateValue != null ? dateValue.toISOString() : null,
+        ownerId: owner.id,
       },
-      ownerId: owner.id,
-    },
-    select: {
-      id: true,
-      participants: true,
-    },
+      select: {
+        id: true,
+      },
+    });
+
+    const participants = await tx.participation.createManyAndReturn({
+      data: participantEmails.map(({ email }) => ({
+        eventId: id,
+        email,
+      })),
+      select: {
+        email: true,
+      },
+    });
+
+    return { id, participants };
   });
 
   if (participants != null) {
@@ -151,15 +167,25 @@ export default function AddEventDialog() {
       title: '',
       description: undefined,
       date: undefined,
-      participants: undefined,
+      participants: [{ email }],
     },
   });
   const fetcher = useFetcher();
   const { toast } = useToast();
 
-  const [participants, setParticipants] = useState<string[]>([email]);
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'participants',
+  });
+
   const [emailToAdd, setEmailToAdd] = useState<string>('');
   const [isInputVisible, setIsInputVisible] = useState(false);
+
+  const participants = fields.map(field => field.email);
+
+  const onSubmit = useCallback(async (data: any) => {
+    await fetcher.submit(data, { method: 'post', encType: 'application/json' });
+  }, [fetcher]);
 
   useEffect(() => {
     if (fetcher.data?.message == null) {
@@ -186,7 +212,11 @@ export default function AddEventDialog() {
           Describe the event you would like to invite people to celebrate with you
         </DialogDescription>
         <Form {...form}>
-          <fetcher.Form method="post" className="space-y-4">
+          <fetcher.Form
+            method="post"
+            className="space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <FormField
               control={form.control}
               name="title"
@@ -238,7 +268,7 @@ export default function AddEventDialog() {
             <FormField
               name="participants"
               control={form.control}
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <div className="flex flex-row justify-between items-center">
                     <FormLabel>Participants</FormLabel>
@@ -256,11 +286,11 @@ export default function AddEventDialog() {
                         className="h-7 w-7 z-30"
                         type="button"
                         onClick={() => {
-                          setParticipants(ps => ([...ps, emailToAdd]));
+                          append({ email: emailToAdd });
                           setEmailToAdd('');
                         }}
                       >
-                        <Plus size="sm" className="h-2 w-2" />
+                        <Plus size="12px" className="h-2 w-2" />
                       </Button>
                     </div>
                   </div>
@@ -279,7 +309,7 @@ export default function AddEventDialog() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {participants?.map(participant => (
+                          {participants?.map((participant, idx) => (
                             <TableRow
                               key={participant}
                               className={participant === email ? 'bg-muted' : ''}
@@ -291,21 +321,22 @@ export default function AddEventDialog() {
                                   className={`h-7 w-7 z-30${participant === email ? ' hidden' : ''}`}
                                   type="button"
                                   onClick={() => {
-                                    setParticipants(ps => ps.filter(p => p !== participant));
+                                    remove(idx);
                                   }}
                                 >
-                                  <Trash size="sm" className="h-2 w-2" />
+                                  <Trash size="12px" className="h-2 w-2" />
                                 </Button>
                               </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
                       </Table>
-                      {participants?.map(participant => (
-                        <Input
-                          key={participant}
+                      {fields.map((field, idx) => (
+                        <input
+                          key={field.id}
                           type="email"
-                          {...field}
+                          {...form.register(`participants.${idx}.email`)}
+                          defaultValue={field.email}
                           hidden
                           disabled
                           className="hidden"
