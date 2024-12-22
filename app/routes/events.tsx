@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     where: {
       participants: {
         some: {
-          email: user.email,
+          userId: user.id,
         },
       },
     },

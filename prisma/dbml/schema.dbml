@@ -23,17 +23,31 @@ Table User {
 
 Table Participation {
   id String [pk]
+  userId String [not null]
+  eventId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  event Event [not null]
+  user User [not null]
+
+  indexes {
+    (userId, eventId) [unique]
+  }
+}
+
+Table Invitation {
+  id String [pk]
   email String [not null]
   eventId String [not null]
   status String [not null, default: 'PENDING']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
-  user User [not null]
   event Event [not null]
 
   indexes {
-    (email, eventId) [unique]
+    (email, eventId, status) [unique]
   }
 }
 
@@ -44,6 +58,7 @@ Table Event {
   date DateTime
   ownerId String [not null]
   participants Participation [not null]
+  invitations Invitation [not null]
   wishes Wish [not null]
   messages EventMessage [not null]
   createdAt DateTime [default: `now()`, not null]
@@ -118,26 +133,28 @@ Table EventMessage {
   on Event [not null]
 }
 
-Ref: Participation.email > User.email
+Ref: Participation.eventId > Event.id [delete: Cascade]
 
-Ref: Participation.eventId > Event.id
+Ref: Participation.userId > User.id [delete: Cascade]
 
-Ref: Event.ownerId > User.id
+Ref: Invitation.eventId > Event.id [delete: Cascade]
 
-Ref: Wish.recipientId > User.id
+Ref: Event.ownerId > User.id [delete: No Action]
 
-Ref: Wish.creatorId > User.id
+Ref: Wish.recipientId > User.id [delete: No Action]
 
-Ref: Wish.eventId > Event.id
+Ref: Wish.creatorId > User.id [delete: No Action]
 
-Ref: Gifter.wishId > Wish.id
+Ref: Wish.eventId > Event.id [delete: No Action]
 
-Ref: Gifter.gifterId > User.id
+Ref: Gifter.wishId > Wish.id [delete: Cascade]
 
-Ref: WishMessage.fromId > User.id
+Ref: Gifter.gifterId > User.id [delete: Cascade]
 
-Ref: WishMessage.onId > Wish.id
+Ref: WishMessage.fromId > User.id [delete: No Action]
 
-Ref: EventMessage.fromId > User.id
+Ref: WishMessage.onId > Wish.id [delete: Cascade]
 
-Ref: EventMessage.onId > Event.id
+Ref: EventMessage.fromId > User.id [delete: No Action]
+
+Ref: EventMessage.onId > Event.id [delete: Cascade]

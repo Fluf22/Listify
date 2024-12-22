@@ -14,14 +14,25 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Participation" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "deletedAt" DATETIME,
+    CONSTRAINT "Participation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Participation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Invitation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Participation_email_fkey" FOREIGN KEY ("email") REFERENCES "User" ("email") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Participation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Invitation_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -34,7 +45,7 @@ CREATE TABLE "Event" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Event_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Event_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -52,9 +63,9 @@ CREATE TABLE "Wish" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Wish_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Wish_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Wish_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Wish_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
+    CONSTRAINT "Wish_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
+    CONSTRAINT "Wish_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -67,8 +78,8 @@ CREATE TABLE "Gifter" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "Gifter_wishId_fkey" FOREIGN KEY ("wishId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Gifter_gifterId_fkey" FOREIGN KEY ("gifterId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Gifter_wishId_fkey" FOREIGN KEY ("wishId") REFERENCES "Wish" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Gifter_gifterId_fkey" FOREIGN KEY ("gifterId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -80,8 +91,8 @@ CREATE TABLE "WishMessage" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "WishMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "WishMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Wish" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "WishMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
+    CONSTRAINT "WishMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Wish" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -93,15 +104,18 @@ CREATE TABLE "EventMessage" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "deletedAt" DATETIME,
-    CONSTRAINT "EventMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "EventMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "EventMessage_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "User" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
+    CONSTRAINT "EventMessage_onId_fkey" FOREIGN KEY ("onId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Participation_email_eventId_key" ON "Participation"("email", "eventId");
+CREATE UNIQUE INDEX "Participation_userId_eventId_key" ON "Participation"("userId", "eventId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Invitation_email_eventId_status_key" ON "Invitation"("email", "eventId", "status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Event_ownerId_title_key" ON "Event"("ownerId", "title");

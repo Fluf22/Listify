@@ -61,18 +61,20 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Check description
-  if (description == null || typeof description !== 'string' || description.length === 0) {
-    return data(
-      { ok: false, errors: { description: 'Description is required' } },
-      { status: 400 },
-    );
-  }
+  if (description != null) {
+    if (typeof description !== 'string') {
+      return data(
+        { ok: false, errors: { description: 'Description is invalid' } },
+        { status: 400 },
+      );
+    }
 
-  if (description.length > 255) {
-    return data(
-      { ok: false, errors: { description: 'Description is too long' } },
-      { status: 400 },
-    );
+    if (description.length > 255) {
+      return data(
+        { ok: false, errors: { description: 'Description is too long' } },
+        { status: 400 },
+      );
+    }
   }
 
   // Check estimated cost

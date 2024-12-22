@@ -89,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  let user: User;
+  let user: Pick<User, 'id' | 'email' | 'name'>;
   try {
     user = await createUser(email, name, password);
   } catch {

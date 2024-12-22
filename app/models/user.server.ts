@@ -19,40 +19,55 @@ export async function createUser(
   email: User['email'],
   name: User['name'],
   password: string,
-): Promise<User> {
+): Promise<Pick<User, 'id' | 'email' | 'name'>> {
   const hashedPassword = await bcrypt.hash(password, 10);
   // Create a token that includes timestamp for expiration
   const timestamp = Date.now();
   const verificationToken = `${randomBytes(32).toString('hex')}.${timestamp}`;
 
-  let user: User;
+  let user: Pick<User, 'id' | 'email' | 'name'>;
   try {
     user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          emailToken: verificationToken,
-        },
-      });
-
       const event = await tx.event.create({
         data: {
           title: DEFAULT_EVENT_TITLE,
-          ownerId: createdUser.id,
+          owner: {
+            create: {
+              email,
+              password: hashedPassword,
+              name,
+              emailToken: verificationToken,
+            },
+          },
+        },
+        select: {
+          id: true,
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
         },
       });
 
       await tx.participation.create({
         data: {
-          email: createdUser.email,
+          userId: event.owner.id,
+          eventId: event.id,
+        },
+      });
+
+      await tx.invitation.create({
+        data: {
+          email,
           eventId: event.id,
           status: 'ACCEPTED',
         },
       });
 
-      return createdUser;
+      return event.owner;
     });
   } catch (e) {
     console.error(e);

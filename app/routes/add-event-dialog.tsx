@@ -28,7 +28,7 @@ const FormSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(255).optional(),
   date: z.string().date().optional(),
-  participants: z.array(z.object({ email: z.string().email() })).min(1),
+  invitations: z.array(z.object({ email: z.string().email() })).min(1),
 });
 
 export async function loader({ request }: ActionFunctionArgs) {
@@ -38,7 +38,7 @@ export async function loader({ request }: ActionFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   // Check form data
-  const { title, description, date, participants: participantList } = await request.json() as z.infer<typeof FormSchema>;
+  const { title, description, date, invitations: invitationList } = await request.json() as z.infer<typeof FormSchema>;
 
   // Check title
   if (title == null || title.length === 0) {
@@ -82,17 +82,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const owner = await requireUser(request);
 
   // Check participants
-  let participantEmails = null;
-  if (participantList != null && (
-    !Array.isArray(participantList)
-    || !participantList.every(participant => 'email' in participant && typeof participant.email === 'string' && participant.email.length > 0)
-    || !participantList.find(participant => participant.email === owner.email)
+  let invitationEmails = null;
+  if (invitationList != null && (
+    !Array.isArray(invitationList)
+    || !invitationList.every(invitation => 'email' in invitation && typeof invitation.email === 'string' && invitation.email.length > 0)
+    || !invitationList.find(invitation => invitation.email === owner.email)
   )) {
     return data(
       {
         ok: false,
         errors: {
-          participants: 'Participants must be a list of strings, with at least the event creator\'s email',
+          invitations: 'Invitations must be a list of strings, with at least the event creator\'s email',
         },
       },
       { status: 400 },
@@ -100,54 +100,66 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    participantEmails = participantList ?? [];
+    invitationEmails = invitationList ?? [];
   } catch {
     return data(
-      { ok: false, errors: { participants: 'Participants is invalid' } },
+      { ok: false, errors: { invitations: 'Invitations is invalid' } },
       { status: 400 },
     );
   }
 
   // Create event
-  const { id, participants } = await prisma.$transaction(async (tx) => {
-    const { id } = await tx.event.create({
-      data: {
-        title,
-        description,
-        date: dateValue != null ? dateValue.toISOString() : null,
-        ownerId: owner.id,
+  const { id, invitations } = await prisma.event.create({
+    data: {
+      title,
+      description,
+      date: dateValue != null ? dateValue.toISOString() : null,
+      ownerId: owner.id,
+      invitations: {
+        createMany: {
+          data: invitationEmails.map(({ email }) => {
+            if (email === owner.email) {
+              return {
+                email,
+                status: 'ACCEPTED',
+              };
+            } else {
+              return {
+                email,
+              };
+            }
+          }),
+        },
       },
-      select: {
-        id: true,
+      participants: {
+        create: {
+          userId: owner.id,
+        },
       },
-    });
-
-    const participants = await tx.participation.createManyAndReturn({
-      data: participantEmails.map(({ email }) => ({
-        eventId: id,
-        email,
-      })),
-      select: {
-        email: true,
+    },
+    select: {
+      id: true,
+      invitations: {
+        select: {
+          email: true,
+        },
       },
-    });
-
-    return { id, participants };
+    },
   });
 
-  if (participants != null) {
-    for (const participant of participants) {
-      if (participant.email === owner.email) {
+  if (invitations != null) {
+    for (const invitation of invitations) {
+      if (invitation.email === owner.email) {
         await resend.emails.send({
           from: EMAIL_FROM,
-          to: participant.email,
+          to: invitation.email,
           subject: 'You have created an event',
           html: `You have created an event. Click <a href="${process.env.APP_URL}/events/${id}">here</a> to view the event.`,
         });
       } else {
         await resend.emails.send({
           from: EMAIL_FROM,
-          to: participant.email,
+          to: invitation.email,
           subject: 'You have been invited to an event',
           html: `You have been invited to an event by ${owner.name}. Click <a href="${process.env.APP_URL}/events/${id}">here</a> to view the event.`,
         });
@@ -167,7 +179,7 @@ export default function AddEventDialog() {
       title: '',
       description: undefined,
       date: undefined,
-      participants: [{ email }],
+      invitations: [{ email }],
     },
   });
   const fetcher = useFetcher();
@@ -175,13 +187,13 @@ export default function AddEventDialog() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'participants',
+    name: 'invitations',
   });
 
   const [emailToAdd, setEmailToAdd] = useState<string>('');
   const [isInputVisible, setIsInputVisible] = useState(false);
 
-  const participants = fields.map(field => field.email);
+  const invitations = fields.map(field => field.email);
 
   const onSubmit = useCallback(async (data: any) => {
     await fetcher.submit(data, { method: 'post', encType: 'application/json' });
@@ -266,12 +278,12 @@ export default function AddEventDialog() {
             />
 
             <FormField
-              name="participants"
+              name="invitations"
               control={form.control}
               render={() => (
                 <FormItem>
                   <div className="flex flex-row justify-between items-center">
-                    <FormLabel>Participants</FormLabel>
+                    <FormLabel>Invitations</FormLabel>
                     <div className="relative flex flex-row justify-end items-center w-full">
                       <Input
                         type="text"
@@ -296,7 +308,7 @@ export default function AddEventDialog() {
                   </div>
                   <FormControl>
                     <>
-                      <Table hidden={participants == null || participants.length === 0}>
+                      <Table>
                         <TableCaption>
                           You will be able to add participants later, from the event
                           page.
@@ -309,16 +321,16 @@ export default function AddEventDialog() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {participants?.map((participant, idx) => (
+                          {invitations?.map((invitation, idx) => (
                             <TableRow
-                              key={participant}
-                              className={participant === email ? 'bg-muted' : ''}
+                              key={invitation}
+                              className={invitation === email ? 'bg-muted' : ''}
                             >
-                              <TableCell>{`${participant}${participant === email ? ' (You)' : ''}`}</TableCell>
+                              <TableCell>{`${invitation}${invitation === email ? ' (You)' : ''}`}</TableCell>
                               <TableCell className="text-right">pending</TableCell>
                               <TableCell className="text-right">
                                 <Button
-                                  className={`h-7 w-7 z-30${participant === email ? ' hidden' : ''}`}
+                                  className={`h-7 w-7 z-30${invitation === email ? ' hidden' : ''}`}
                                   type="button"
                                   onClick={() => {
                                     remove(idx);
@@ -335,7 +347,7 @@ export default function AddEventDialog() {
                         <input
                           key={field.id}
                           type="email"
-                          {...form.register(`participants.${idx}.email`)}
+                          {...form.register(`invitations.${idx}.email`)}
                           defaultValue={field.email}
                           hidden
                           disabled

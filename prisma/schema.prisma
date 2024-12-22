@@ -34,6 +34,21 @@ model User {
 
 model Participation {
   id      String @id @default(cuid())
+  userId  String
+  eventId String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  event Event @relation(name: "Event_UserParticipation", fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(name: "User_Participation", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId]) // only one participation per user per event
+}
+
+model Invitation {
+  id      String @id @default(cuid())
   email   String
   eventId String
   status  String @default("PENDING") // "PENDING", "ACCEPTED", "DECLINED"
@@ -42,10 +57,9 @@ model Participation {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  user  User  @relation(name: "User_Participation", fields: [email], references: [email])
-  event Event @relation(name: "Event_UserParticipation", fields: [eventId], references: [id])
+  event Event @relation(name: "Event_UserInvitation", fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@unique([email, eventId]) // only one participation per user per event
+  @@unique([email, eventId, status]) // only one invitation per email per event
 }
 
 model Event {
@@ -56,6 +70,7 @@ model Event {
   ownerId     String
 
   participants Participation[] @relation("Event_UserParticipation")
+  invitations  Invitation[]    @relation("Event_UserInvitation")
   wishes       Wish[]          @relation(name: "Event_Wish")
   messages     EventMessage[]  @relation("OnEvent_EventMessage")
 
@@ -63,7 +78,7 @@ model Event {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  owner User @relation(name: "Owner_Event", fields: [ownerId], references: [id])
+  owner User @relation(name: "Owner_Event", fields: [ownerId], references: [id], onDelete: NoAction)
 
   @@unique([ownerId, title]) // Each user can only have one event with the same title
 }
@@ -87,9 +102,9 @@ model Wish {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  recipient User  @relation(name: "Recipient_Wish", fields: [recipientId], references: [id])
-  creator   User  @relation(name: "AddedBy_Wish", fields: [creatorId], references: [id])
-  event     Event @relation(name: "Event_Wish", fields: [eventId], references: [id])
+  recipient User  @relation(name: "Recipient_Wish", fields: [recipientId], references: [id], onDelete: NoAction)
+  creator   User  @relation(name: "AddedBy_Wish", fields: [creatorId], references: [id], onDelete: NoAction)
+  event     Event @relation(name: "Event_Wish", fields: [eventId], references: [id], onDelete: NoAction)
 
   @@index([eventId, creatorId, recipientId, createdAt(sort: Desc)]) // Most used query
 }
@@ -105,8 +120,8 @@ model Gifter {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  wish   Wish @relation(name: "Wish_Gifter", fields: [wishId], references: [id])
-  gifter User @relation(name: "User_Gifter", fields: [gifterId], references: [id])
+  wish   Wish @relation(name: "Wish_Gifter", fields: [wishId], references: [id], onDelete: Cascade)
+  gifter User @relation(name: "User_Gifter", fields: [gifterId], references: [id], onDelete: Cascade)
 
   @@unique([wishId, gifterId])
 }
@@ -121,8 +136,8 @@ model WishMessage {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  from User @relation(name: "FromUser_WishMessage", fields: [fromId], references: [id])
-  on   Wish @relation(name: "OnWish_WishMessage", fields: [onId], references: [id])
+  from User @relation(name: "FromUser_WishMessage", fields: [fromId], references: [id], onDelete: NoAction)
+  on   Wish @relation(name: "OnWish_WishMessage", fields: [onId], references: [id], onDelete: Cascade)
 }
 
 model EventMessage {
@@ -135,6 +150,6 @@ model EventMessage {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  from User  @relation(name: "FromUser_EventMessage", fields: [fromId], references: [id])
-  on   Event @relation(name: "OnEvent_EventMessage", fields: [onId], references: [id])
+  from User  @relation(name: "FromUser_EventMessage", fields: [fromId], references: [id], onDelete: NoAction)
+  on   Event @relation(name: "OnEvent_EventMessage", fields: [onId], references: [id], onDelete: Cascade)
 }

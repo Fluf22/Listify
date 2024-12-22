@@ -9,7 +9,7 @@ import { DEFAULT_EVENT_TITLE } from '~/models/event.server';
 import { logout, requireUser } from '~/session.server';
 import { safeRedirect } from '~/utils';
 
-type EventOverview = Partial<Event> & { _count: { participants: number } };
+type EventOverview = Partial<Event> & { _count: { invitations: number } };
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const redirectTo = new URL(request.url).searchParams.get('redirectTo');
@@ -56,6 +56,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
             {
               participants: {
                 some: {
+                  userId: user.id,
+                },
+              },
+            },
+            {
+              invitations: {
+                some: {
                   email: user.email,
                 },
               },
@@ -76,7 +83,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       date: true,
       _count: {
         select: {
-          participants: true,
+          invitations: true,
         },
       },
       ownerId: true,
@@ -120,7 +127,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   });
 
-  const invitations = await prisma.participation.findMany({
+  const invitations = await prisma.invitation.findMany({
     where: {
       email: user.email,
       status: 'PENDING',
@@ -186,7 +193,7 @@ export default function Home() {
                       <p>{event.description}</p>
                       <p className="text-sm text-gray-500">
                         Participants:
-                        {event._count?.participants}
+                        {event._count?.invitations}
                       </p>
                     </CardContent>
                   </Card>
@@ -200,8 +207,8 @@ export default function Home() {
                     <CardContent>
                       <p>{event.description}</p>
                       <p className="text-sm text-gray-500">
-                        Participants:
-                        {event._count?.participants}
+                        Invitations:
+                        {event._count?.invitations}
                       </p>
                     </CardContent>
                   </Card>
